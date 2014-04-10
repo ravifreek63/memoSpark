@@ -13,7 +13,7 @@ import org.apache.spark.SparkContext
  * ...
  * where URL and their neighbors are separated by space(s).
  */
-object VPageRank {
+object IPageRank {
   def main(args: Array[String]) {
    if (args.length < 3) {
      System.err.println("Usage: PageRank <master> <file> <number_of_iterations>")
