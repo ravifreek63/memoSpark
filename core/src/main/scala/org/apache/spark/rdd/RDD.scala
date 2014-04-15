@@ -259,7 +259,12 @@ abstract class RDD[T: ClassTag](
    * Return a new RDD containing only the elements that satisfy a predicate.
    */
   def filter(f: T => Boolean): RDD[T] = new FilteredRDD(this, sc.clean(f))
-
+  
+  /**
+   * Return a new RDD containing elements sorted by the keys
+   */
+  def index(): RDD[T] = new IndexedRDD(this)
+  
   /**
    * Return a new RDD containing the distinct elements in this RDD.
    */
