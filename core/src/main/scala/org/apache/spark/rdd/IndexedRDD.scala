@@ -84,14 +84,16 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
   // Searches for a specific key within the RDD set 
    def searchByKey(Key:String) : String = {
     val index = getPartitionIndex (Key) // find out the number of partitions
+    println("partitionIndex:" + index)
     var result: (String, String) = ("", "")
     prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
       var result: (String, String) = ("", "")
       var flag = false
       while (!flag && iter.hasNext) {
         result = iter.next()
+        println("resultPair:" +result._1 + "," + result._2)
         if(result._1 == Key)
-          flag = true
+          flag = true          
       }      
     }, Seq(index), false)
     result._2
