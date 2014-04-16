@@ -17,6 +17,9 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
   // Pair class is used to compare pairs of values together 
   case class Pair(key:String, value:String)
   
+  // Defines a range of partitions
+  class PartitionRange(start: Int, end:Int)
+  
   // This function defines an ordering over the pair of keys (Instance of a Pair Class)
   object PairOrdering extends Ordering[Pair] {
       def compare(a: Pair, b: Pair) = a.key.toString() compare b.key.toString()
@@ -29,9 +32,10 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
   private var _doSort = false
   
   // Initializing to get the number of partitions
-  def initNumPartitions () {
+  def initNumPartitions () : Int = {
     if (_numPartitions == -1)
-       _numPartitions  = partitions.size           
+       _numPartitions  = partitions.size 
+    _numPartitions
   }
   
   // Sorts a given RDD into an RDD using the keys in the array
@@ -63,6 +67,16 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
      keyMap
    }
   
+  // Builds the f
+  def buildIndexByPartition() : Array[String] = {
+    val array = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
+      iter.next()._1
+    }, 0 until self.partitions.size, true)
+    array
+  }
+  
+ 
+  
   def buildIndexNoSort(): HashMap[String, Int] = {
      var index = 0     
      self.foreach (s => {
@@ -73,11 +87,9 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
      println("keymap-size: " + keyMap.size)
      keyMap
   }
-  
-  
 
   // Searches within a key range within the RDD set  
-   def searchByKeyRange(Key1: String, Key2: String): Array[String] = {
+   /*def searchByKeyRange(Key1: String, Key2: String): Array[String] = {
     val index1 = getPartitionIndex (Key1) // finds the initial partition index
     val index2 = getPartitionIndex (Key2) // finds the final partition index
     println("index1:" + index1)
@@ -121,16 +133,19 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
         ""
   }
 
-  // Gets the partitions location for a specific string 
-  def getPartitionIndex(key: String) : Int = {    
-    if (_numPartitions == -1){
-       initNumPartitions ()       
-    }     
+  // Gets the partition ranges for a specific string 
+  def getPartitionRange(key: String) : PartitionRange = {    
+    var startIndex = -1
+    var endIndex = -1
+    
+    keyMap.foreach (s => {
+       if ()    
+    })
     val location = keyMap(key) // could do a binary lookup on the map, if only a subset of keys is stored  
     val partitionSize = keyMap.size/_numPartitions // TODO need to change the size function here   
     val partitionIndex = location/partitionSize // TODO need to find out how do we get the number of elements per partition
     partitionIndex
-  }
+  }*/
 
    // Getter Method for the keyMap
    def getMap: HashMap[String, Int] = {
