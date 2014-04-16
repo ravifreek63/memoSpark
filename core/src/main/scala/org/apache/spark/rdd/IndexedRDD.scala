@@ -40,11 +40,12 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
       Sorting.quickSort(_array)(PairOrdering) // Sorting the elements of this array
       // default value of number of partitions set to 1
       _numPartitions = 1
-      // this should be removed by understanding the code for parallelizing
+      // this should be removed by understanding the code for parallelizing  - has to be improved
       this.context.parallelize(_array, _numPartitions).map(s => (s.key.toString(), s.value.toString())) // Parallelize the given array and converts it into an RDD sorted by keys      
   }
    
   var self: RDD[(String, String)] = sortByKey()
+  self
   
   //initNumPartitions()
 		  				
