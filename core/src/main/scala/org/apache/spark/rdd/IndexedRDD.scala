@@ -5,7 +5,7 @@ import scala.util.Sorting
 import collection.mutable.HashMap
 import org.apache.spark.SparkContext
 
-private[spark] class IndexedRDD[K: ClassTag](prev: RDD[K]) 
+class IndexedRDD[K: ClassTag](prev: RDD[K]) 
     extends RDD[K](prev) {
   
   // Initializing the number of partitions to -1 
