@@ -5,7 +5,7 @@ import scala.util.Sorting
 import collection.mutable.HashMap
 import org.apache.spark.SparkContext
 
-private[spark] class IndexedRDD[K: ClassTag](prev: RDD[K], sc: SparkContext) 
+private[spark] class IndexedRDD[K: ClassTag](prev: RDD[K]) 
     extends RDD[K](prev) {
   
   // Initializing the number of partitions to -1 
@@ -36,7 +36,7 @@ private[spark] class IndexedRDD[K: ClassTag](prev: RDD[K], sc: SparkContext)
   
   // Sorts a given RDD into an RDD using the keys in the array
   def sortByKey() : RDD[(String, String)] = {
-      _array = this.map {case (key, value) => new Pair(key, value)}.collect() // Collecting the elements of this RDD into an array 
+      _array = prev.map {case (key, value) => new Pair(key, value)}.collect() // Collecting the elements of this RDD into an array 
       Sorting.quickSort(_array)(PairOrdering) // Sorting the elements of this array
       // default value of number of partitions set to 1
       _numPartitions = 1
@@ -68,7 +68,7 @@ private[spark] class IndexedRDD[K: ClassTag](prev: RDD[K], sc: SparkContext)
     val index1 = getPartitionIndex (Key1) // finds the initial partition index
     val index2 = getPartitionIndex (Key2) // finds the final partition index
     var stringList = List[String]()  
-    sc.runJob(self, (iter: Iterator[(String, String)]) => {
+    prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
       var result: (String, String) = ("", "")
       while (iter.hasNext) {        
         result = iter.next()
@@ -83,7 +83,7 @@ private[spark] class IndexedRDD[K: ClassTag](prev: RDD[K], sc: SparkContext)
   def searchByKey(Key:String) : String = {
     val index = getPartitionIndex (Key) // find out the number of partitions
     var result: (String, String) = ("", "")
-    sc.runJob(self, (iter: Iterator[(String, String)]) => {
+    prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
       var result: (String, String) = ("", "")
       var flag = false
       while (!flag && iter.hasNext) {
@@ -114,7 +114,7 @@ private[spark] class IndexedRDD[K: ClassTag](prev: RDD[K], sc: SparkContext)
    // Needs to be changed
    override def getPartitions: Array[Partition] = firstParent[K].partitions
    
-   // Needs to be changed 
+   // Needs to be changed - may remain the same 
    override def compute(split: Partition, context: TaskContext) =
     firstParent[K].iterator(split, context)
 }

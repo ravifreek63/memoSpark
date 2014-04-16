@@ -175,6 +175,8 @@ abstract class RDD[T: ClassTag](
 
   /** Get the RDD's current storage level, or StorageLevel.NONE if none is set. */
   def getStorageLevel = storageLevel
+  
+  def getSC = sc
 
   // Our dependencies and partitions will be gotten by calling subclass's methods below, and will
   // be overwritten when we're checkpointed
@@ -263,7 +265,7 @@ abstract class RDD[T: ClassTag](
   /**
    * Return a new RDD containing elements sorted by the keys
    */
-  def index(): RDD[T] = new IndexedRDD(this, sc)
+  def index(): RDD[T] = new IndexedRDD(this)
   
   /**
    * Return a new RDD containing the distinct elements in this RDD.
