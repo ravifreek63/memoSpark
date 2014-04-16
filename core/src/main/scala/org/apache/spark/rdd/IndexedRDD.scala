@@ -18,7 +18,7 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
   case class Pair(key:String, value:String)
   
   // Defines a range of partitions
-  class PartitionRange(start: Int, end:Int)
+  class PartitionRange(start: String, end: String)
   
   // This function defines an ordering over the pair of keys (Instance of a Pair Class)
   object PairOrdering extends Ordering[Pair] {
@@ -67,12 +67,39 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
      keyMap
    }
   
-  // Builds the f
-  def buildIndexByPartition() : Array[String] = {
+  // Gets the range of keys on each of the partitions
+  /** The basic idea is to get the largest and the smallest key on each of the partition.
+   *  This index is stored on the driver program itself. 
+   *  Thereafter run jobs based on the start and end location.
+   */
+  def rangePartitions() : Array[PartitionRange] = {
+    var smallestKey = ""
+    var currentKey = ""
+    var largestKey = ""
     val array = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
-      iter.next()._1
+      currentKey = iter.next()._1
+      while (iter.hasNext) {
+        if((currentKey compare smallestKey) < 0 || (smallestKey == ""))
+          smallestKey = currentKey
+         if((currentKey compare largestKey) > 0)
+           largestKey = currentKey            
+      }
+      new PartitionRange (smallestKey, largestKey)
     }, 0 until self.partitions.size, true)
     array
+  }
+  
+  /** The assumption here is that the partitions are sorted. 
+   *  Then we can build a faster index.
+   *  This function builds an index based on the initial values of each of the partition.
+   *  The fastIndex maps <partitionIndex, startKey>
+   */
+  
+  def indexPartitions() : Array[String] = {
+    val fastIndex = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
+      iter.next()._1
+    }, 0 until self.partitions.size, true)
+    fastIndex
   }
   
  
