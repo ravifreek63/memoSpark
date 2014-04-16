@@ -54,17 +54,15 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
     // Builds the index on the keyMap
     def buildIndex(): HashMap[String, Int] = {    
      var index = 0
-     println("building index")
-     self.foreach (s => {
-         println(s._1 + ":" + s._2)
-    	 keyMap += s._1 -> index 
-    	 index += 1
-    	 println(keyMap.size + "<-size:index->" + index)
+     _array.foreach (s => {
+         keyMap.put(s.key.toString, index)
+         index = index + 1
        }
      )
      keyMap
    }
-
+  
+  
 
   // Searches within a key range within the RDD set  
    def searchByKeyRange(Key1: String, Key2: String): List[String] = {
