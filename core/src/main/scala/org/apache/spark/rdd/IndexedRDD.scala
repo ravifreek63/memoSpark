@@ -94,7 +94,8 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
         println("resultPair:" +result._1 + "," + result._2)
         if(result._1 == Key)
           flag = true          
-      }      
+      }
+      result._2
     }, Seq(index), false)
     result._2
   }
