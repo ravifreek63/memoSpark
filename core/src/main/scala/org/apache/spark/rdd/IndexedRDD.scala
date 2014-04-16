@@ -8,6 +8,10 @@ import org.apache.spark.SparkContext
 class IndexedRDD[K: ClassTag](prev: RDD[K]) 
     extends RDD[K](prev) {
   
+  def this (prev: RDD[K]): RDD[(String, String)] = {
+    
+  }
+  
   // Initializing the number of partitions to -1 
   private var _numPartitions = -1
  
@@ -54,7 +58,9 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
     // Builds the index on the keyMap
     def buildIndex(): HashMap[String, Int] = {    
      var index = 0
+     println("building index")
      self.foreach (s => {
+         println(s._1 + ":" + s._2)
     	 keyMap(s._1) = index 
     	 index += 1
        }
