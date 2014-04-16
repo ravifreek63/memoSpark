@@ -66,27 +66,27 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
   
 
   // Searches within a key range within the RDD set  
-   def searchByKeyRange(Key1: String, Key2: String): List[String] = {
+   def searchByKeyRange(Key1: String, Key2: String): Array[Array[String]] = {
     val index1 = getPartitionIndex (Key1) // finds the initial partition index
     val index2 = getPartitionIndex (Key2) // finds the final partition index
-    var stringList = List[String]()  
     prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
+      var stringList = List[String]()
       var result: (String, String) = ("", "")
       while (iter.hasNext) {        
         result = iter.next()
         if((result._1 compare Key1) <= 0 && (result._1 compare Key2) >= 0)
           stringList = stringList :+ result._2
       }      
-    }, index1 until index2, false)  
-    stringList    
+      stringList.toArray
+    }, index1 until index2, false)            
   }
   
   // Searches for a specific key within the RDD set 
-   def searchByKey(Key:String) : Array[String] = {
+   def searchByKey(Key:String) : String = {
     val index = getPartitionIndex (Key) // find out the number of partitions
     println("partitionIndex:" + index)
     var result: (String, String) = ("", "")
-    prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
+    var array = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
       var result: (String, String) = ("", "")
       var flag = false
       while (!flag && iter.hasNext) {
@@ -97,6 +97,10 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
       }      
       result._2
     }, Seq(index), false)    
+    if (array.size > 0)
+      array(0)
+      else 
+        ""
   }
 
   // Gets the partitions location for a specific string 
