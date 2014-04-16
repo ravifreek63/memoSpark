@@ -59,6 +59,7 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
          index = index + 1
        }
      )
+     println("keymap-size: " + keyMap.size)
      keyMap
    }
   
