@@ -16,6 +16,7 @@
  */
 
 package org.apache.spark.rdd
+import collection.mutable.HashMap
 
 import java.util.Random
 
@@ -266,6 +267,13 @@ abstract class RDD[T: ClassTag](
    * Return a new RDD containing elements sorted by the keys
    */
   def index(): RDD[T] = new IndexedRDD(this)
+  
+  /* Overriden By Index Class */ 
+  protected def buildIndex(): HashMap[String, Int]
+  
+  protected def searchByKeyRange(Key1: String, Key2: String): List[String] = Nil
+  
+  protected def searchByKey(Key:String) : String = ""
   
   /**
    * Return a new RDD containing the distinct elements in this RDD.
