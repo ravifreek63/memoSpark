@@ -269,7 +269,7 @@ abstract class RDD[T: ClassTag](
   def index(): RDD[T] = new IndexedRDD(this)
   
   /* Overriden By Index Class */ 
-  protected def buildIndex(): HashMap[String, Int]
+  protected def buildIndex(): HashMap[String, Int] = new HashMap[String, Int]()
   
   protected def searchByKeyRange(Key1: String, Key2: String): List[String] = Nil
   
