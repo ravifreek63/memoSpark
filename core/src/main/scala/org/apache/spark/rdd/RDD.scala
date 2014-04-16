@@ -269,11 +269,11 @@ abstract class RDD[T: ClassTag](
   def index(): RDD[T] = new IndexedRDD(this)
   
   /* Overriden By Index Class */ 
-  protected def buildIndex(): HashMap[String, Int] = new HashMap[String, Int]()
+  def buildIndex(): HashMap[String, Int] = new HashMap[String, Int]()
   
-  protected def searchByKeyRange(Key1: String, Key2: String): List[String] = Nil
+  def searchByKeyRange(Key1: String, Key2: String): List[String] = Nil
   
-  protected def searchByKey(Key:String) : String = ""
+  def searchByKey(Key:String) : String = ""
   
   /**
    * Return a new RDD containing the distinct elements in this RDD.
