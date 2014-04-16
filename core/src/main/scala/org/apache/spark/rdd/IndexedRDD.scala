@@ -76,11 +76,13 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
       var result: (String, String) = ("", "")
       while (iter.hasNext) {        
         result = iter.next()
+        println("result:" + result)
         if((result._1 compare Key1) >= 0 && (result._1 compare Key2) <= 0)
           stringList = stringList :+ result._2
       }      
       stringList.toArray
-    }, index1 until index2, false)  
+    }, index1 until index2, false) // Can we do an efficient way to bind the array of array of strings  
+    // converting to an array of strings
     var b = Array[String]() 
     array.foreach(a => {a.foreach(str => b = b:+ str)})
     b
