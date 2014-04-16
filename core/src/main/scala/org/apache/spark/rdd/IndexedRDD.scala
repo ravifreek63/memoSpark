@@ -8,10 +8,6 @@ import org.apache.spark.SparkContext
 class IndexedRDD[K: ClassTag](prev: RDD[K]) 
     extends RDD[K](prev) {
   
-  def this (prev: RDD[K]): RDD[(String, String)] = {
-    
-  }
-  
   // Initializing the number of partitions to -1 
   private var _numPartitions = -1
  
