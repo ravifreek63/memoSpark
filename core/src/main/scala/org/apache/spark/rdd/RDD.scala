@@ -263,7 +263,7 @@ abstract class RDD[T: ClassTag](
   /**
    * Return a new RDD containing elements sorted by the keys
    */
-  def index(): RDD[T] = new IndexedRDD(this)
+  def index(): RDD[T] = new IndexedRDD(this, sc)
   
   /**
    * Return a new RDD containing the distinct elements in this RDD.
@@ -898,7 +898,7 @@ abstract class RDD[T: ClassTag](
     this.map(x => (NullWritable.get(), new Text(x.toString)))
       .saveAsHadoopFile[TextOutputFormat[NullWritable, Text]](path)
   }
-
+    
   /**
    * Save this RDD as a compressed text file, using string representations of elements.
    */
