@@ -15,7 +15,7 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
   private var keyMap: HashMap[String, Int] = new HashMap[String, Int]() // Maps string to index
   
   // Pair class is used to compare pairs of values together 
-  case class Pair(key:Any, value:Any)
+  case class Pair(key:String, value:String)
   
   // This function defines an ordering over the pair of keys (Instance of a Pair Class)
   object PairOrdering extends Ordering[Pair] {
@@ -36,7 +36,7 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
   
   // Sorts a given RDD into an RDD using the keys in the array
   def sortByKey() : RDD[(String, String)] = {
-      _array = prev.map {case (key, value) => new Pair(key, value)}.collect() // Collecting the elements of this RDD into an array 
+      _array = prev.map {case (key, value) => new Pair(key.toString, value.toString)}.collect() // Collecting the elements of this RDD into an array 
       Sorting.quickSort(_array)(PairOrdering) // Sorting the elements of this array
       // default value of number of partitions set to 1
       _numPartitions = 1
@@ -44,7 +44,7 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
       this.context.parallelize(_array, _numPartitions).map(s => (s.key.toString(), s.value.toString())) // Parallelize the given array and converts it into an RDD sorted by keys      
   }
    
-  var self: RDD[(String, String)] = sortByKey()
+  var self: RDD[(String, String)] = prev.map {case (key, value) => (key.toString, value.toString)} 
   self
   
   //initNumPartitions()
@@ -62,6 +62,17 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
      println("keymap-size: " + keyMap.size)
      keyMap
    }
+  
+  def buildIndexNoSort(): HashMap[String, Int] = {
+     var index = 0     
+     self.foreach (s => {
+         keyMap.put(s._1, index)
+         index = index + 1
+       }
+     )
+     println("keymap-size: " + keyMap.size)
+     keyMap
+  }
   
   
 
