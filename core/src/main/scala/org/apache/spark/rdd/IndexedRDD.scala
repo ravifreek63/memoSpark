@@ -81,7 +81,7 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
           stringList = stringList :+ result._2
       }      
       stringList.toArray
-    }, index1 until index2, false) // Can we do an efficient way to bind the array of array of strings  
+    }, index1 until index2 + 1, false) // Can we do an efficient way to bind the array of array of strings  
     // converting to an array of strings
     var b = Array[String]() 
     array.foreach(a => {a.foreach(str => b = b:+ str)})
