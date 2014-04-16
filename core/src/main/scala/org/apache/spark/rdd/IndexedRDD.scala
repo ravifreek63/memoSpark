@@ -82,7 +82,7 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
   }
   
   // Searches for a specific key within the RDD set 
-   def searchByKey(Key:String) : String = {
+   def searchByKey(Key:String) : Array[String] = {
     val index = getPartitionIndex (Key) // find out the number of partitions
     println("partitionIndex:" + index)
     var result: (String, String) = ("", "")
@@ -94,11 +94,9 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
         println("resultPair:" +result._1 + "," + result._2)
         if(result._1 == Key)
           flag = true          
-      }
-      println("result = " + result._2)
+      }      
       result._2
-    }, Seq(index), false)
-    result._2
+    }, Seq(index), false)    
   }
 
   // Gets the partitions location for a specific string 
