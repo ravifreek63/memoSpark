@@ -66,19 +66,24 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
   
 
   // Searches within a key range within the RDD set  
-   def searchByKeyRange(Key1: String, Key2: String): Array[Array[String]] = {
+   def searchByKeyRange(Key1: String, Key2: String): Array[String] = {
     val index1 = getPartitionIndex (Key1) // finds the initial partition index
     val index2 = getPartitionIndex (Key2) // finds the final partition index
-    prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
+    println("index1:" + index1)
+    println("index2:" + index2)
+    val array = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
       var stringList = List[String]()
       var result: (String, String) = ("", "")
       while (iter.hasNext) {        
         result = iter.next()
-        if((result._1 compare Key1) <= 0 && (result._1 compare Key2) >= 0)
+        if((result._1 compare Key1) >= 0 && (result._1 compare Key2) <= 0)
           stringList = stringList :+ result._2
       }      
       stringList.toArray
-    }, index1 until index2, false)            
+    }, index1 until index2, false)  
+    var b = Array[String]() 
+    array.foreach(a => {a.foreach(str => b = b:+ str)})
+    b
   }
   
   // Searches for a specific key within the RDD set 
