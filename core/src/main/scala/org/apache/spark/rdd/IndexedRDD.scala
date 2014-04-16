@@ -51,7 +51,7 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
 		  				/* Member Method Definitions Below */  
   
     // Builds the index on the keyMap
-   override def buildIndex(): HashMap[String, Int] = {    
+    def buildIndex(): HashMap[String, Int] = {    
      var index = 0
      self.foreach (s => {
     	 keyMap(s._1) = index 
@@ -63,7 +63,7 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
 
 
   // Searches within a key range within the RDD set  
-  override def searchByKeyRange(Key1: String, Key2: String): List[String] = {
+   def searchByKeyRange(Key1: String, Key2: String): List[String] = {
     val index1 = getPartitionIndex (Key1) // finds the initial partition index
     val index2 = getPartitionIndex (Key2) // finds the final partition index
     var stringList = List[String]()  
@@ -79,7 +79,7 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
   }
   
   // Searches for a specific key within the RDD set 
-  override def searchByKey(Key:String) : String = {
+   def searchByKey(Key:String) : String = {
     val index = getPartitionIndex (Key) // find out the number of partitions
     var result: (String, String) = ("", "")
     prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
