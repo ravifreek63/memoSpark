@@ -57,7 +57,7 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
      println("building index")
      self.foreach (s => {
          println(s._1 + ":" + s._2)
-    	 keyMap(s._1) = index 
+    	 keyMap += s._1 -> index 
     	 index += 1
        }
      )
