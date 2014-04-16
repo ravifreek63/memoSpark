@@ -51,10 +51,9 @@ private[spark] class IndexedRDD[K: ClassTag](prev: RDD[K])
 		  				/* Member Method Definitions Below */  
   
     // Builds the index on the keyMap
-   override def buildIndex(): HashMap[String, Int] = {
-     val sortRDD: RDD[(String, String)] = sortByKey()
+   override def buildIndex(): HashMap[String, Int] = {    
      var index = 0
-     sortRDD.foreach (s => {
+     self.foreach (s => {
     	 keyMap(s._1) = index 
     	 index += 1
        }
