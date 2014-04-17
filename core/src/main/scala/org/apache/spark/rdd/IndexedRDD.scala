@@ -140,14 +140,14 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
     var endSet = false
     var index = 0 
     _fastIndex.foreach(s=> {
-      if (string2Int(s) < string2Int(key)){
+      if (string2Int(key) < string2Int(s)){
         if(endSet == false){
           endIndex = index
           endSet = true
         }
-      } else if (string2Int(s) >= string2Int(key)){
+      } else if (string2Int(key) >= string2Int(s)){
           if(startSet == false){
-             startIndex = index
+             startIndex = index+1
              startSet = true
           }
       }
@@ -202,14 +202,13 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
     prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
       var result: (String, String) = ("", "")
       var stringList = List[String]()
-      var flag = false
       while (iter.hasNext) {
         result = iter.next()
         if(result._1 == Key)
           stringList = stringList :+ result._2
      }      
       stringList.toArray
-    }, index1 until index2, flag)        
+    }, index1 until index2+1, flag)        
   }
 
   // Gets the partition ranges for a specific string 
