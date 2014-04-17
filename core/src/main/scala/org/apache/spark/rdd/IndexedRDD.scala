@@ -23,6 +23,8 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
     def end () : String = end 
   }
   
+  def string2Int(s: String): Int = augmentString(s).toInt
+  
   // This function defines an ordering over the pair of keys (Instance of a Pair Class)
   object PairOrdering extends Ordering[Pair] {
       def compare(a: Pair, b: Pair) = a.key.toString() compare b.key.toString()
@@ -33,6 +35,8 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
   
   // Flag which stores whether the elements are sorted or not 
   private var _doSort = false
+  
+  var _fastIndex = Array[String]()
   
   // Initializing to get the number of partitions
   def initNumPartitions () : Int = {
@@ -100,7 +104,7 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
    */
   def rangePartitionsInt(flag: Boolean) : Array[String] = {
     var range = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
-    implicit def string2Int(s: String): Int = augmentString(s).toInt
+    
     var smallestKey = "0"
     var currentKey = "0"
     var largestKey = "0"
@@ -123,12 +127,37 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
    */
   
   def indexPartitions() : Array[String] = {
-    val fastIndex = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
+    _fastIndex = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
       iter.next()._1
     }, 0 until self.partitions.size, true)
-    fastIndex
+    _fastIndex
   }
   
+  def getIndexRangeSortedInt(key: String) : (Int, Int) = {
+    var startIndex = 0
+    var endIndex = 0
+    var startSet = false
+    var endSet = false
+    var index = 0 
+    _fastIndex.foreach(s=> {
+      if (string2Int(s) < string2Int(key)){
+        if(endSet == false){
+          endIndex = index
+          endSet = true
+        }
+      } else if (string2Int(s) >= string2Int(key)){
+          if(startSet == false){
+             startIndex = index
+             startSet = true
+          }
+      }
+      index = index + 1
+    })
+    if (endSet == false){
+      endIndex = index-1
+    }
+    (startIndex, endIndex)
+  }  
  
   
   def buildIndexNoSort(): HashMap[String, Int] = {
@@ -143,9 +172,9 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
   }
 
   // Searches within a key range within the RDD set  
-   /*def searchByKeyRange(Key1: String, Key2: String): Array[String] = {
-    val index1 = getPartitionIndex (Key1) // finds the initial partition index
-    val index2 = getPartitionIndex (Key2) // finds the final partition index
+   /*def searchByKeyRange(Key: String): Array[String] = {
+    var range = getIndexRangeSortedInt (Key)
+    var index1 = range._1var index 2 = range._2
     println("index1:" + index1)
     println("index2:" + index2)
     val array = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
@@ -163,32 +192,28 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
     var b = Array[String]() 
     array.foreach(a => {a.foreach(str => b = b:+ str)})
     b
-  }
+  }*/
   
   // Searches for a specific key within the RDD set 
-   def searchByKey(Key:String) : String = {
-    val index = getPartitionIndex (Key) // find out the number of partitions
-    println("partitionIndex:" + index)
-    var result: (String, String) = ("", "")
-    var array = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
+   def searchByKey(Key:String, flag: Boolean) : Array[Array[String]] = {
+    val range = getIndexRangeSortedInt(Key)
+    val index1 = range._1 // find out the number of partitions
+    val index2 = range._2 // find out the number of partitions
+    prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
       var result: (String, String) = ("", "")
+      var stringList = List[String]()
       var flag = false
-      while (!flag && iter.hasNext) {
+      while (iter.hasNext) {
         result = iter.next()
-        println("resultPair:" +result._1 + "," + result._2)
         if(result._1 == Key)
-          flag = true          
-      }      
-      result._2
-    }, Seq(index), false)    
-    if (array.size > 0)
-      array(0)
-      else 
-        ""
+          stringList = stringList :+ result._2
+     }      
+      stringList.toArray
+    }, index1 until index2, flag)        
   }
 
   // Gets the partition ranges for a specific string 
-  def getPartitionRange(key: String) : PartitionRange = {    
+ /* def getPartitionRange(key: String) : PartitionRange = {    
     var startIndex = -1
     var endIndex = -1
     
