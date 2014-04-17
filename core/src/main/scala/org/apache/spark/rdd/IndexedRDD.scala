@@ -75,10 +75,10 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
    *  Thereafter run jobs based on the start and end location.
    */
   def rangePartitions(flag: Boolean) : Array[String] = {
+    var range = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
     var smallestKey = ""
     var currentKey = ""
     var largestKey = ""
-    var range = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {      
       while (iter.hasNext) {
         if((currentKey compare smallestKey) < 0 || (smallestKey == ""))
           smallestKey = currentKey
