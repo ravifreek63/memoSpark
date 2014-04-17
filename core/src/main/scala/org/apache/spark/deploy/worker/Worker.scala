@@ -151,6 +151,9 @@ private[spark] class Worker(
     for (masterUrl <- masterUrls) {
       logInfo("Connecting to master " + masterUrl + "...")
       val actor = context.actorSelection(Master.toAkkaUrl(masterUrl))
+      logInfo("Master.toAkkaUrl(masterUrl):" + Master.toAkkaUrl(masterUrl))
+      logInfo(workerId + host + port + cores + memory + webUi.boundPort.get + 
+        publicAddress)
       actor ! RegisterWorker(workerId, host, port, cores, memory, webUi.boundPort.get,
         publicAddress)
     }
