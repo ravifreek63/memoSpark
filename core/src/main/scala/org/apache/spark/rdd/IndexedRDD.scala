@@ -74,11 +74,11 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
    *  This index is stored on the driver program itself. 
    *  Thereafter run jobs based on the start and end location.
    */
-  def rangePartitions(flag: Boolean) : Array[PartitionRange] = {
+  def rangePartitions(flag: Boolean) : Array[String] = {
     var smallestKey = ""
     var currentKey = ""
     var largestKey = ""
-    rangePart = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {      
+    var range = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {      
       while (iter.hasNext) {
         if((currentKey compare smallestKey) < 0 || (smallestKey == ""))
           smallestKey = currentKey
@@ -86,9 +86,9 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
            largestKey = currentKey
         currentKey = iter.next()._1
       }
-      new PartitionRange (smallestKey, largestKey)
+      new String(smallestKey + "," + largestKey)
     }, 0 until self.partitions.size, flag)
-    rangePart
+    range
   }
   
   /** The assumption here is that the partitions are sorted. 
