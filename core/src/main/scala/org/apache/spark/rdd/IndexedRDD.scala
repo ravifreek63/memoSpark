@@ -18,7 +18,10 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
   case class Pair(key:String, value:String)
   
   // Defines a range of partitions
-  class PartitionRange(start: String, end: String)
+  class PartitionRange(start: String, end: String){
+    def start () : String = start
+    def end () : String = end 
+  }
   
   // This function defines an ordering over the pair of keys (Instance of a Pair Class)
   object PairOrdering extends Ordering[Pair] {
