@@ -76,6 +76,7 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
    */
   def rangePartitions(flag: Boolean) : Array[String] = {
     var range = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
+    
     var smallestKey = ""
     var currentKey = ""
     var largestKey = ""
@@ -83,6 +84,30 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
         if((currentKey compare smallestKey) < 0 || (smallestKey == ""))
           smallestKey = currentKey
          if((currentKey compare largestKey) > 0)
+           largestKey = currentKey
+        currentKey = iter.next()._1
+      }
+      new String(smallestKey + "," + largestKey)
+    }, 0 until self.partitions.size, flag)
+    range
+  }
+  
+  
+  // Gets the range of keys on each of the partitions
+  /** The basic idea is to get the largest and the smallest key on each of the partition.
+   *  This index is stored on the driver program itself. 
+   *  Thereafter run jobs based on the start and end location.
+   */
+  def rangePartitionsInt(flag: Boolean) : Array[String] = {
+    var range = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
+    implicit def string2Int(s: String): Int = augmentString(s).toInt
+    var smallestKey = "0"
+    var currentKey = "0"
+    var largestKey = "0"
+      while (iter.hasNext) {
+        if(string2Int(currentKey) < string2Int(smallestKey) || smallestKey == "0")
+          smallestKey = currentKey
+         if(string2Int(currentKey) > string2Int(largestKey))
            largestKey = currentKey
         currentKey = iter.next()._1
       }
