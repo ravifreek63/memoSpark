@@ -75,13 +75,13 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
     var smallestKey = ""
     var currentKey = ""
     var largestKey = ""
-    rangePart = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
-      currentKey = iter.next()._1
+    rangePart = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {      
       while (iter.hasNext) {
         if((currentKey compare smallestKey) < 0 || (smallestKey == ""))
           smallestKey = currentKey
          if((currentKey compare largestKey) > 0)
-           largestKey = currentKey            
+           largestKey = currentKey
+        currentKey = iter.next()._1
       }
       new PartitionRange (smallestKey, largestKey)
     }, 0 until self.partitions.size, flag)
