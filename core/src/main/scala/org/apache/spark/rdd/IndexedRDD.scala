@@ -50,10 +50,8 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
    
   var self: RDD[(String, String)] = prev.map {case (key, value) => (key.toString, value.toString)} 
   self
-  var rangePart: Array[PartitionRange]
+  var rangePart: Array[PartitionRange] = Array[PartitionRange]()
   
-  //initNumPartitions()
-		  				
 		  				/* Member Method Definitions Below */  
   
     // Builds the index on the keyMap
