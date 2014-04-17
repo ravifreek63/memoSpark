@@ -50,6 +50,7 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
    
   var self: RDD[(String, String)] = prev.map {case (key, value) => (key.toString, value.toString)} 
   self
+  var rangePart: Array[PartitionRange]
   
   //initNumPartitions()
 		  				
@@ -76,7 +77,7 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
     var smallestKey = ""
     var currentKey = ""
     var largestKey = ""
-    val array = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
+    rangePart = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
       currentKey = iter.next()._1
       while (iter.hasNext) {
         if((currentKey compare smallestKey) < 0 || (smallestKey == ""))
@@ -85,8 +86,8 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
            largestKey = currentKey            
       }
       new PartitionRange (smallestKey, largestKey)
-    }, 0 until self.partitions.size, true)
-    array
+    }, 0 until self.partitions.size, false)
+    rangePart
   }
   
   /** The assumption here is that the partitions are sorted. 
