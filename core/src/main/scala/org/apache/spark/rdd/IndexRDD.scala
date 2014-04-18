@@ -35,8 +35,7 @@ class IndexRDD [K: ClassTag](prev: RDD[K])
     	  })    	  
       } 
       wordList.distinct
-    }, 0 until self.partitions.size, flag)
-    var map = HashMap[String, Array[Int]]()
+    }, 0 until self.partitions.size, flag)    
     var index = -1
     // assertion that _compressedIndex.size == numPartitions
     compressedIndex.foreach (wordList => {
@@ -45,14 +44,14 @@ class IndexRDD [K: ClassTag](prev: RDD[K])
       val indexInArray = index / _intSize
       wordList.foreach (word => {
          // updateMap(word, getBitRep(index))
-         if (map.contains(word)){
-    	    var indexArray = map(word)
+         if (_compressedMap.contains(word)){
+    	    var indexArray = _compressedMap(word)
             indexArray(indexInArray) = indexArray(indexInArray) | bitRep
-    	    map.put(word, indexArray)
+    	    _compressedMap.put(word, indexArray)
     	  } else {
     	    val array = Array[Int](numPartitions)
     	    array(indexInArray) = bitRep
-    	    map.put(word, array)
+    	    _compressedMap.put(word, array)
     	  }
       })
     })
