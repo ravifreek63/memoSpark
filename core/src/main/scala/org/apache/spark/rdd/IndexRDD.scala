@@ -6,7 +6,7 @@ import collection.mutable.HashMap
 import org.apache.spark.SparkContext
 
 
-class IndexRDD [K: ClassTag](prev: RDD[String]) 
+class IndexRDD [K: ClassTag](prev: RDD[K]) 
     extends RDD[K](prev)  {
   
   var self: RDD[(String)] = prev.map(key => key.toString())

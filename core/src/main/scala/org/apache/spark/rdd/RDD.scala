@@ -268,7 +268,7 @@ abstract class RDD[T: ClassTag](
    */
   def index(): RDD[T] = new IndexRDD(this)
   
-  def indexedKV(): RDD[T] = new IndexRDD(this)
+  def indexedKV(): RDD[T] = new IndexedRDDKV(this)
   
   /**
    * Return a new RDD containing the distinct elements in this RDD.
