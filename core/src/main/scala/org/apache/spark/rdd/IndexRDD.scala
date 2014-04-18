@@ -31,7 +31,8 @@ class IndexRDD [K: ClassTag](prev: RDD[K])
     	      subWord = word
     	     else 
     	      subWord = word.substring(0, keySize-1)
-    	    wordList = wordList :+ subWord
+    	    if (!(wordList contains subWord))
+    	    	wordList = wordList :+ subWord
     	  })    	  
       } 
       wordList.distinct
