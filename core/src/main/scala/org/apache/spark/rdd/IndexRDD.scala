@@ -103,5 +103,10 @@ class IndexRDD [K: ClassTag](prev: RDD[K])
     }
     count
   }
-  
+     // Needs to be changed
+   override def getPartitions: Array[Partition] = firstParent[K].partitions
+   
+   // Needs to be changed - may remain the same 
+   override def compute(split: Partition, context: TaskContext) =
+    firstParent[K].iterator(split, context)
 }
