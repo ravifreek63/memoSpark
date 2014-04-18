@@ -5,7 +5,7 @@ import scala.util.Sorting
 import collection.mutable.HashMap
 import org.apache.spark.SparkContext
 
-class IndexedRDD[K: ClassTag](prev: RDD[K]) 
+class IndexedRDDKV[K: ClassTag](prev: RDD[K]) 
     extends RDD[K](prev) {
   
   // Initializing the number of partitions to -1 
@@ -56,9 +56,8 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
   }
    
   var self: RDD[(String, String)] = prev.map {case (key, value) => (key.toString, value.toString)} 
-  self
   var rangePart: Array[PartitionRange] = Array[PartitionRange]()
-  
+  self
 		  				/* Member Method Definitions Below */  
   
     // Builds the index on the keyMap
@@ -120,6 +119,8 @@ class IndexedRDD[K: ClassTag](prev: RDD[K])
     range
   }
   
+  
+
   /** The assumption here is that the partitions are sorted. 
    *  Then we can build a faster index.
    *  This function builds an index based on the initial values of each of the partition.
