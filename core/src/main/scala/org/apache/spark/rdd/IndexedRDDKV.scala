@@ -10,10 +10,11 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
   
   // Initializing the number of partitions to -1 
   private var _numPartitions = -1
- 
-  // Key Map which stores the index of the key, it is used to get the index of the partition in which the key resides
-  private var keyMap: HashMap[String, Int] = new HashMap[String, Int]() // Maps string to index
   
+  private val keyTypeInt = 1
+  private val keyTypeString = 2
+  private val keyTypeTimeStamp = 3
+ 
   // Pair class is used to compare pairs of values together 
   case class Pair(key:String, value:String)
   
@@ -25,18 +26,37 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
   
   def string2Int(s: String): Int = augmentString(s).toInt
   
+  def isAllDigits(x: String) = x forall Character.isDigit
+  
+    def compareKeys (key1 : String, key2 : String) : Int  = {
+    var keyType = -1
+    if (isAllDigits(key1) == true)
+      keyType = keyTypeInt
+      else 
+        keyType = keyTypeString
+    var compareVal = -2
+    if (keyType == keyTypeInt){
+      if (string2Int(key1) < string2Int(key2))
+       compareVal = -1        
+       else if (string2Int(key1) < string2Int(key2)) 
+        compareVal = 1 
+        else 
+         compareVal = 0
+    } else if (keyType == keyTypeString){
+    	compareVal = key1 compare key2
+    } 
+    compareVal
+  }
+
   // This function defines an ordering over the pair of keys (Instance of a Pair Class)
   object PairOrdering extends Ordering[Pair] {
       def compare(a: Pair, b: Pair) = a.key.toString() compare b.key.toString()
   }
 
-  // Array which contains the sorted results
-  private var _array = Array[Pair]()
-  
   // Flag which stores whether the elements are sorted or not 
   private var _doSort = false
   
-  var _fastIndex = Array[String]()
+  var _partitionIndex = Array[String]()
   
   // Initializing to get the number of partitions
   def initNumPartitions () : Int = {
@@ -45,32 +65,10 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
     _numPartitions
   }
   
-  // Sorts a given RDD into an RDD using the keys in the array
-  def sortByKey() : RDD[(String, String)] = {
-      _array = prev.map {case (key, value) => new Pair(key.toString, value.toString)}.collect() // Collecting the elements of this RDD into an array 
-      Sorting.quickSort(_array)(PairOrdering) // Sorting the elements of this array
-      // default value of number of partitions set to 1
-      _numPartitions = 1
-      // this should be removed by understanding the code for parallelizing  - has to be improved
-      this.context.parallelize(_array, _numPartitions).map(s => (s.key.toString(), s.value.toString())) // Parallelize the given array and converts it into an RDD sorted by keys      
-  }
-   
   var self: RDD[(String, String)] = prev.map {case (key, value) => (key.toString, value.toString)} 
   var rangePart: Array[PartitionRange] = Array[PartitionRange]()
   self
 		  				/* Member Method Definitions Below */  
-  
-    // Builds the index on the keyMap
-    def buildIndex(): HashMap[String, Int] = {    
-     var index = 0
-     _array.foreach (s => {
-         keyMap.put(s.key.toString, index)
-         index = index + 1
-       }
-     )
-     println("keymap-size: " + keyMap.size)
-     keyMap
-   }
   
   // Gets the range of keys on each of the partitions
   /** The basic idea is to get the largest and the smallest key on each of the partition.
@@ -78,15 +76,14 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
    *  Thereafter run jobs based on the start and end location.
    */
   def rangePartitions(flag: Boolean) : Array[String] = {
-    var range = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
-    
+    var range = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {    
     var smallestKey = ""
     var currentKey = ""
     var largestKey = ""
       while (iter.hasNext) {
-        if((currentKey compare smallestKey) < 0 || (smallestKey == ""))
+        if(compareKeys(currentKey, smallestKey) < 0 || (smallestKey == ""))
           smallestKey = currentKey
-         if((currentKey compare largestKey) > 0)
+         if(compareKeys(currentKey, smallestKey) > 0)
            largestKey = currentKey
         currentKey = iter.next()._1
       }
@@ -95,32 +92,6 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
     range
   }
   
-  
-  // Gets the range of keys on each of the partitions
-  /** The basic idea is to get the largest and the smallest key on each of the partition.
-   *  This index is stored on the driver program itself. 
-   *  Thereafter run jobs based on the start and end location.
-   */
-  def rangePartitionsInt(flag: Boolean) : Array[String] = {
-    var range = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
-    
-    var smallestKey = "0"
-    var currentKey = "0"
-    var largestKey = "0"
-      while (iter.hasNext) {
-        if(string2Int(currentKey) < string2Int(smallestKey) || smallestKey == "0")
-          smallestKey = currentKey
-         if(string2Int(currentKey) > string2Int(largestKey))
-           largestKey = currentKey
-        currentKey = iter.next()._1
-      }
-      new String(smallestKey + "," + largestKey)
-    }, 0 until self.partitions.size, flag)
-    range
-  }
-  
-  
-
   /** The assumption here is that the partitions are sorted. 
    *  Then we can build a faster index.
    *  This function builds an index based on the initial values of each of the partition.
@@ -128,25 +99,25 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
    */
   
   def indexPartitions() : Array[String] = {
-    _fastIndex = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
+    _partitionIndex = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
       iter.next()._1
     }, 0 until self.partitions.size, true)
-    _fastIndex
+    _partitionIndex
   }
   
-  def getIndexRangeSortedInt(key: String) : (Int, Int) = {
+  def partitionRanges(key: String) : (Int, Int) = {
     var startIndex = 0
     var endIndex = 0
     var startSet = false
     var endSet = false
     var index = 0 
-    _fastIndex.foreach(s=> {
-      if (string2Int(key) < string2Int(s)){
+    _partitionIndex.foreach(s=> {
+      if (compareKeys(key, s) == -1){
         if(endSet == false){
           endIndex = index
           endSet = true
         }
-      } else if (string2Int(key) >= string2Int(s)){
+      } else if (compareKeys(key, s) >= 0){
           if(startSet == false){
              startIndex = index+1
              startSet = true
@@ -160,44 +131,9 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
     (startIndex, endIndex)
   }  
  
-  
-  def buildIndexNoSort(): HashMap[String, Int] = {
-     var index = 0     
-     self.foreach (s => {
-         keyMap.put(s._1, index)
-         index = index + 1
-       }
-     )
-     println("keymap-size: " + keyMap.size)
-     keyMap
-  }
-
-  // Searches within a key range within the RDD set  
-   /*def searchByKeyRange(Key: String): Array[String] = {
-    var range = getIndexRangeSortedInt (Key)
-    var index1 = range._1var index 2 = range._2
-    println("index1:" + index1)
-    println("index2:" + index2)
-    val array = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
-      var stringList = List[String]()
-      var result: (String, String) = ("", "")
-      while (iter.hasNext) {        
-        result = iter.next()
-        println("result:" + result)
-        if((result._1 compare Key1) >= 0 && (result._1 compare Key2) <= 0)
-          stringList = stringList :+ result._2
-      }      
-      stringList.toArray
-    }, index1 until index2 + 1, false) // Can we do an efficient way to bind the array of array of strings  
-    // converting to an array of strings
-    var b = Array[String]() 
-    array.foreach(a => {a.foreach(str => b = b:+ str)})
-    b
-  }*/
-  
   // Searches for a specific key within the RDD set 
-   def searchByKey(Key:String, flag: Boolean) : Array[Array[String]] = {
-    val range = getIndexRangeSortedInt(Key)
+   def searchByKey(Key:String, flag: Boolean = true) : Array[Array[String]] = {
+    val range = partitionRanges(Key)
     val index1 = range._1 // find out the number of partitions
     val index2 = range._2 // find out the number of partitions
     prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
@@ -212,25 +148,43 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
     }, index1 until index2+1, flag)        
   }
 
-  // Gets the partition ranges for a specific string 
- /* def getPartitionRange(key: String) : PartitionRange = {    
-    var startIndex = -1
-    var endIndex = -1
-    
-    keyMap.foreach (s => {
-       if ()    
-    })
-    val location = keyMap(key) // could do a binary lookup on the map, if only a subset of keys is stored  
-    val partitionSize = keyMap.size/_numPartitions // TODO need to change the size function here   
-    val partitionIndex = location/partitionSize // TODO need to find out how do we get the number of elements per partition
-    partitionIndex
-  }*/
-
-   // Getter Method for the keyMap
-   def getMap: HashMap[String, Int] = {
-     keyMap
-   }
+  def unionRanges (Range1: (Int, Int), Range2: (Int, Int)) : (Int, Int) = {
+    var start = -1
+    var end = -1
+    if (Range1._1 < Range2._1)
+    	start = Range1._1
+    	else 
+    	  start = Range2._1
+    if (Range1._2 > Range2._2)
+    	end = Range1._2
+    	else 
+    	  end = Range2._2
+   (start, end)
+  } 
    
+  def liesBetween (Key: String, SKey: String, LKey: String) : Boolean = {
+    if (compareKeys(Key, SKey) >= 0 && compareKeys(Key, LKey) <=0)
+     true
+    else 
+     false
+  }
+  
+  def searchByKeyRange(Key1: String, Key2:String, flag:Boolean = true) : Array[Array[String]] = {
+    val range1 = partitionRanges(Key1)
+    val range2 = partitionRanges(Key2)
+    val range = unionRanges(range1, range2)
+      prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
+      var result: (String, String) = ("", "")
+      var stringList = List[String]()
+      while (iter.hasNext) {
+        result = iter.next()
+        if(liesBetween(result._1, Key1, Key2))
+          stringList = stringList :+ result._2
+     }      
+      stringList.toArray
+    }, range._1 until range._2+1, flag)        
+  }  
+  
    // Needs to be changed
    override def getPartitions: Array[Partition] = firstParent[K].partitions
    
