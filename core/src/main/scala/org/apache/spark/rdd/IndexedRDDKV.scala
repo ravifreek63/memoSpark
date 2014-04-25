@@ -117,11 +117,8 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
           endIndex = index
           endSet = true
         }
-      } else if (compareKeys(key, s) >= 0){
-          if(startSet == false){
-             startIndex = index+1
-             startSet = true
-          }
+      } else if (compareKeys(key, s) >= 0){          
+             startIndex = index+1             
       }
       index = index + 1
     })
