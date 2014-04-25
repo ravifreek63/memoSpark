@@ -19,7 +19,8 @@ class IndexRDD [K: ClassTag](prev: RDD[K])
   }
   
   // Compressed Key Index - Supports word count, by compressing keys 
-  def compressedKeyIndex(flag: Boolean, keySize: Int, numPartitions: Int) :  HashMap[String, Array[Int]] = {    
+  def compressedKeyIndex(flag: Boolean, keySize: Int) :  HashMap[String, Array[Int]] = {
+    var numPartitions = self.partitions.size
     var compressedIndex = prev.getSC.runJob(self, (iter: Iterator[(String)]) => {
       var subWord = ""
       var wordList = List[String]()  
