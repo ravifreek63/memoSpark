@@ -17,7 +17,7 @@
 
 package org.apache.spark.executor
 
-import java.io.File
+import java.io._
 import java.lang.management.ManagementFactory
 import java.nio.ByteBuffer
 import java.util.concurrent._
@@ -101,6 +101,12 @@ private[spark] class Executor(
       }
     )
   }
+
+      def printToFile (msg: String){
+      val writer = new FileWriter("/home/tandon/out.txt", true)
+      writer.write(msg + "\n")
+      writer.close()
+      }
 
   val executorSource = new ExecutorSource(this, executorId)
 
@@ -212,7 +218,8 @@ private[spark] class Executor(
         taskStart = System.currentTimeMillis()
         val value = task.run(taskId.toInt)
         val taskFinish = System.currentTimeMillis()
-
+        val taskTime = taskFinish - taskStart
+ 
         // If the task has been killed, let's fail it.
         if (task.killed) {
           throw TaskKilledException
@@ -228,6 +235,7 @@ private[spark] class Executor(
           m.executorDeserializeTime = (taskStart - startTime).toInt
           m.executorRunTime = (taskFinish - taskStart).toInt
           m.jvmGCTime = gcTime - startGCTime
+         // printToFile(taskId +  "," + taskTime + ","  + m.jvmGCTime)
           m.resultSerializationTime = (afterSerialization - beforeSerialization).toInt
         }
 
