@@ -114,7 +114,7 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
     _partitionIndex.foreach(s=> {
       if (compareKeys(key, s) == -1){
         if(endSet == false){
-          endIndex = index
+          endIndex = index-1
           endSet = true
         }
       } else if (compareKeys(key, s) >= 0){          
