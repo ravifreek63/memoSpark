@@ -38,7 +38,7 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
     if (keyType == keyTypeInt){
       if (string2Int(key1) < string2Int(key2))
        compareVal = -1        
-       else if (string2Int(key1) < string2Int(key2)) 
+       else if (string2Int(key1) > string2Int(key2)) 
         compareVal = 1 
         else 
          compareVal = 0
