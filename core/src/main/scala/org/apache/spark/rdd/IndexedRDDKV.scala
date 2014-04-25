@@ -118,7 +118,7 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
           endSet = true
         }
       } else if (compareKeys(key, s) >= 0){          
-             startIndex = index+1             
+             startIndex = index           
       }
       index = index + 1
     })
@@ -137,8 +137,7 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
       var result: (String, String) = ("", "")
       var stringList = List[String]()
       while (iter.hasNext) {
-        result = iter.next()
-        println(result._1)
+        result = iter.next()        
         if(result._1 == Key)
           stringList = stringList :+ result._2
      }      
