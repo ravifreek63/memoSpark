@@ -99,6 +99,7 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
            smallest = current 
          else if (compareKeys(current, largest) > 0)
            largest = current
+       current = iter.next()._1
       }
       (smallest, largest)
     }, 0 until self.partitions.size, true)
