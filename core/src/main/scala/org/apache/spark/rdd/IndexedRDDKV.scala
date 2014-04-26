@@ -57,6 +57,7 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
   private var _doSort = false
   
   var _partitionIndex = Array[String]()
+  var _rangePartitionIndex = Array[(String, String)]()
   
   // Initializing to get the number of partitions
   def initNumPartitions () : Int = {
@@ -105,6 +106,38 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
     _partitionIndex
   }
   
+  def rangePartitions(): Array[(String, String)] = {        
+    _rangePartitionIndex = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
+      var smallest = ""
+      var largest  = ""
+      var current = ""
+      if (iter.hasNext)
+    	  current = iter.next()._1
+      smallest = current
+      largest = current 
+      while (iter.hasNext){
+        if (compareKeys(current, smallest) < 0) 
+           smallest = current 
+         else if (compareKeys(current, largest) > 0)
+           largest = current
+      }
+      (smallest, largest)
+    }, 0 until self.partitions.size, true)
+    _rangePartitionIndex          
+  }
+  
+  def partitionByRange(key: String) : Array[Int] = {
+	var partitions = Array[Int]()
+	var index = 0
+	_rangePartitionIndex.foreach (s => {
+	  if (compareKeys(key, s._1) >= 0 && compareKeys(key, s._2) <= 0){
+	    partitions = partitions :+ index
+	    index = index + 1
+	  }
+	})
+	partitions
+  }
+  
   def partitionRanges(key: String) : (Int, Int) = {
     var startIndex = 0
     var endIndex = 0
@@ -128,6 +161,21 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
     (startIndex, endIndex)
   }  
  
+   def searchByKeyRangePartitioned(Key:String, flag: Boolean = true) : Array[Array[String]] = {
+    val range = partitionByRange(Key)
+    prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
+      var result: (String, String) = ("", "")
+      var stringList = List[String]()
+      while (iter.hasNext) {
+        result = iter.next()        
+        if(result._1 == Key)
+          stringList = stringList :+ result._2
+     }      
+      stringList.toArray
+    }, range, flag)        
+  }
+
+   
   // Searches for a specific key within the RDD set 
    def searchByKey(Key:String, flag: Boolean = true) : Array[Array[String]] = {
     val range = partitionRanges(Key)
