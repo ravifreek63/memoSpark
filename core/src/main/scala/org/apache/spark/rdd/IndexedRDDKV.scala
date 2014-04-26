@@ -71,28 +71,7 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
   self
 		  				/* Member Method Definitions Below */  
   
-  // Gets the range of keys on each of the partitions
-  /** The basic idea is to get the largest and the smallest key on each of the partition.
-   *  This index is stored on the driver program itself. 
-   *  Thereafter run jobs based on the start and end location.
-   */
-  def rangePartitions(flag: Boolean) : Array[String] = {
-    var range = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {    
-    var smallestKey = ""
-    var currentKey = ""
-    var largestKey = ""
-      while (iter.hasNext) {
-        if(compareKeys(currentKey, smallestKey) < 0 || (smallestKey == ""))
-          smallestKey = currentKey
-         if(compareKeys(currentKey, smallestKey) > 0)
-           largestKey = currentKey
-        currentKey = iter.next()._1
-      }
-      new String(smallestKey + "," + largestKey)
-    }, 0 until self.partitions.size, flag)
-    range
-  }
-  
+
   /** The assumption here is that the partitions are sorted. 
    *  Then we can build a faster index.
    *  This function builds an index based on the initial values of each of the partition.
@@ -106,7 +85,7 @@ class IndexedRDDKV[K: ClassTag](prev: RDD[K])
     _partitionIndex
   }
   
-  def rangePartitions(): Array[(String, String)] = {        
+  def rangePartitions(flag : Boolean): Array[(String, String)] = {        
     _rangePartitionIndex = prev.getSC.runJob(self, (iter: Iterator[(String, String)]) => {
       var smallest = ""
       var largest  = ""
