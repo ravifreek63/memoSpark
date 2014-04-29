@@ -81,6 +81,7 @@ private[spark] class BlockStoreShuffleFetcher extends ShuffleFetcher with Loggin
       val shuffleMetrics = new ShuffleReadMetrics
       shuffleMetrics.shuffleFinishTime = System.currentTimeMillis
       shuffleMetrics.remoteFetchTime = blockFetcherItr.remoteFetchTime
+      logInfo("fetch Time:" + shuffleMetrics.remoteFetchTime.toString)
       shuffleMetrics.fetchWaitTime = blockFetcherItr.fetchWaitTime
       shuffleMetrics.remoteBytesRead = blockFetcherItr.remoteBytesRead
       shuffleMetrics.totalBlocksFetched = blockFetcherItr.totalBlocks
