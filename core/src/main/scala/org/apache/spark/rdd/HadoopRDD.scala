@@ -142,7 +142,7 @@ class HadoopRDD[K, V](
     val inputSplits = inputFormat.getSplits(jobConf, minSplits)
     val endTime = System.currentTimeMillis()
     val timeD = endTime -  startTime    
-    logInfo(timeD.toString)
+    logInfo("Time to get split:" + timeD.toString)
     val array = new Array[Partition](inputSplits.size)
     for (i <- 0 until inputSplits.size) {
       array(i) = new HadoopPartition(id, i, inputSplits(i))
@@ -151,6 +151,7 @@ class HadoopRDD[K, V](
   }
 
   override def compute(theSplit: Partition, context: TaskContext) = {
+    val startTime = System.currentTimeMillis()
     val iter = new NextIterator[(K, V)] {
       val split = theSplit.asInstanceOf[HadoopPartition]
       logInfo("Input split: " + split.inputSplit)
@@ -182,6 +183,9 @@ class HadoopRDD[K, V](
         }
       }
     }
+    val endTime = System.currentTimeMillis()
+    val timeD = endTime -  startTime    
+    logInfo("Time to get split:" + timeD.toString)
     new InterruptibleIterator[(K, V)](context, iter)
   }
 
