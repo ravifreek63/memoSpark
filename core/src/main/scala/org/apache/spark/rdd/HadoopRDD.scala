@@ -142,7 +142,7 @@ class HadoopRDD[K, V](
     val inputSplits = inputFormat.getSplits(jobConf, minSplits)
     val endTime = System.currentTimeMillis()
     val timeD = endTime -  startTime    
-    logInfo("Time to get split:" + timeD.toString)
+    //logInfo("Time to get split:" + timeD.toString)
     val array = new Array[Partition](inputSplits.size)
     for (i <- 0 until inputSplits.size) {
       array(i) = new HadoopPartition(id, i, inputSplits(i))
@@ -175,7 +175,7 @@ class HadoopRDD[K, V](
         }    
         val endTime = System.currentTimeMillis()
         val timeD = endTime -  startTime    
-        logInfo("split:" + split.inputSplit + ",time:" + timeD.toString)
+        //logInfo("split:" + split.inputSplit + ",time:" + timeD.toString)
         (key, value)
       }
 
