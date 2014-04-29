@@ -46,9 +46,11 @@ private[spark] class HttpBroadcast[T](@transient var value_ : T, isLocal: Boolea
 
   // Called by JVM when deserializing an object
   private def readObject(in: ObjectInputStream) {
+    logInfo("in readObject")
+    val startTime = System.currentTimeMillis()
     in.defaultReadObject()
     HttpBroadcast.synchronized {
-      logInfo("in readObject")
+
       SparkEnv.get.blockManager.getSingle(blockId) match {
         case Some(x) => value_ = x.asInstanceOf[T]
         case None => {
@@ -61,6 +63,9 @@ private[spark] class HttpBroadcast[T](@transient var value_ : T, isLocal: Boolea
         }
       }
     }
+    val endTime = System.currentTimeMillis()
+    val timeD = endTime -  startTime
+    logInfo("readObject, time:" + timeD.toString)
   }
 }
 
