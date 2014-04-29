@@ -166,16 +166,12 @@ class HadoopRDD[K, V](
       val key: K = reader.createKey()
       val value: V = reader.createValue()
       override def getNext() = {
-        val startTime = System.currentTimeMillis()
         try {
           finished = !reader.next(key, value)
         } catch {
           case eof: EOFException =>
             finished = true
         }    
-        val endTime = System.currentTimeMillis()
-        val timeD = endTime -  startTime    
-        //logInfo("split:" + split.inputSplit + ",time:" + timeD.toString)
         (key, value)
       }
 

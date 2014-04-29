@@ -231,7 +231,7 @@ abstract class RDD[T: ClassTag](
   final def iterator(split: Partition, context: TaskContext): Iterator[T] = {
     if (storageLevel != StorageLevel.NONE) {
     val startTime = System.currentTimeMillis()
-      val I =SparkEnv.get.cacheManager.getOrCompute(this, split, context, storageLevel)
+    val I = SparkEnv.get.cacheManager.getOrCompute(this, split, context, storageLevel)
     val endTime = System.currentTimeMillis()
     val timeD = endTime -  startTime
     logInfo("split:" + split.index.toString +", time:" + timeD.toString) 
