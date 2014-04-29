@@ -141,8 +141,8 @@ class HadoopRDD[K, V](
     val startTime = System.currentTimeMillis()
     val inputSplits = inputFormat.getSplits(jobConf, minSplits)
     val endTime = System.currentTimeMillis()
-    val timeD = endTime -  startTime
-    sc.printToFile(timeD.toString)
+    val timeD = endTime -  startTime    
+    logInfo(timeD.toString)
     val array = new Array[Partition](inputSplits.size)
     for (i <- 0 until inputSplits.size) {
       array(i) = new HadoopPartition(id, i, inputSplits(i))
