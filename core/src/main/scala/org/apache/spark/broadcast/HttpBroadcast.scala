@@ -48,6 +48,7 @@ private[spark] class HttpBroadcast[T](@transient var value_ : T, isLocal: Boolea
   private def readObject(in: ObjectInputStream) {
     in.defaultReadObject()
     HttpBroadcast.synchronized {
+      logInfo("in readObject")
       SparkEnv.get.blockManager.getSingle(blockId) match {
         case Some(x) => value_ = x.asInstanceOf[T]
         case None => {
