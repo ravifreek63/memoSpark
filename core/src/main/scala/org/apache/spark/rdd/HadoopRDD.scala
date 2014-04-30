@@ -16,7 +16,7 @@
  */
 
 package org.apache.spark.rdd
-
+import org.apache.hadoop.mapred;
 import java.io.EOFException
 
 import org.apache.hadoop.conf.{Configuration, Configurable}
@@ -149,6 +149,8 @@ class HadoopRDD[K, V](
     array
   }
 
+
+
   override def compute(theSplit: Partition, context: TaskContext) = {
     
     val iter = new NextIterator[(K, V)] {
@@ -159,7 +161,8 @@ class HadoopRDD[K, V](
       val jobConf = getJobConf()
       val inputFormat = getInputFormat(jobConf)
       reader = inputFormat.getRecordReader(split.inputSplit.value, jobConf, Reporter.NULL)
-
+      logInfo("split Length:"+ ((split.inputSplit.value)).getLength().toString)
+      logInfo("split Length to string:" + split.inputSplit.value.toString)
       // Register an on-task-completion callback to close the input stream.
       context.addOnCompleteCallback{ () => closeIfNeeded() }
       val key: K = reader.createKey()
