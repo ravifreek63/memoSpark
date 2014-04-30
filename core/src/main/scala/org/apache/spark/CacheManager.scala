@@ -32,7 +32,7 @@ private[spark] class CacheManager(blockManager: BlockManager) extends Logging {
   private var fileName: String = ""
   private var printFlag = false
   def getFileName(){
-    val source = scala.io.Source.fromFile(getCurrentDirectory + "./log.txt").getLines
+    val source = scala.io.Source.fromFile(getCurrentDirectory + "/log.txt").getLines
     if (source.hasNext){
       printFlag = true
       fileName = source.next().trim()
