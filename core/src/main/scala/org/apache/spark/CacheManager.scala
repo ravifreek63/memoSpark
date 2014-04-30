@@ -72,14 +72,14 @@ private[spark] class CacheManager(blockManager: BlockManager) extends Logging {
           // Persist the result, so long as the task is not running locally
           if (context.runningLocally) { return computedValues }
           val elements = new ArrayBuffer[Any]
-          logInfo("elements")// The place where data gets accessed
+          val startTime = System.currentTimeMillis()
           elements ++= computedValues
-          logInfo("putting to block manager")
-          blockManager.put(key, elements, storageLevel, tellMaster = true)
-          logInfo("accessing iterator")
-          val I =elements.iterator.asInstanceOf[Iterator[T]]
-          logInfo("after accessing iterator")
-          I
+          val endTime = System.currentTimeMillis()
+          val timeDifference = endTime - startTime 
+          // Time taken to print each partition
+          rdd.getSC.printToFile("%s".format(key) + "," + elements.size + "," + timeDifference.toString)
+          blockManager.put(key, elements, storageLevel, tellMaster = true)          
+          elements.iterator.asInstanceOf[Iterator[T]]                   
         } finally {
           loading.synchronized {
             loading.remove(key)
