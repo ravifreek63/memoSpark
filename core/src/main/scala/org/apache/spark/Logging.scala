@@ -46,11 +46,11 @@ trait Logging {
 
   // Log methods that take only a String
   protected def logInfo(msg: => String) {
-    if (log.isInfoEnabled) log.info(msg)
+    if (log.isInfoEnabled) log.info(System.currentTimeMillis() + " :: " + msg)
   }
 
   protected def logDebug(msg: => String) {
-    if (log.isDebugEnabled) log.debug(msg)
+    if (log.isDebugEnabled) log.debug(System.currentTimeMillis() + " :: " + msg)
   }
   
   protected def logTrace(msg: => String) {
