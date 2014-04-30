@@ -50,7 +50,6 @@ private[spark] class HttpBroadcast[T](@transient var value_ : T, isLocal: Boolea
     val startTime = System.currentTimeMillis()
     in.defaultReadObject()
     HttpBroadcast.synchronized {
-
       SparkEnv.get.blockManager.getSingle(blockId) match {
         case Some(x) => value_ = x.asInstanceOf[T]
         case None => {

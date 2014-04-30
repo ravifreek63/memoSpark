@@ -229,7 +229,9 @@ abstract class RDD[T: ClassTag](
    * subclasses of RDD.
    */
   final def iterator(split: Partition, context: TaskContext): Iterator[T] = {
+    logInfo("in Iterator")
     if (storageLevel != StorageLevel.NONE) {
+    logInfo("storage level not none")
     val startTime = System.currentTimeMillis()
     val I = SparkEnv.get.cacheManager.getOrCompute(this, split, context, storageLevel)
     val endTime = System.currentTimeMillis()
@@ -237,6 +239,8 @@ abstract class RDD[T: ClassTag](
     logInfo("split:" + split.index.toString +", time:" + timeD.toString) 
     I
     } else {
+      logInfo("storage level none")
+      logInfo("iterator called, calling computeOrReadCheckpoint")
       computeOrReadCheckpoint(split, context)
     }
   }
@@ -246,6 +250,7 @@ abstract class RDD[T: ClassTag](
    */
   private[spark] def computeOrReadCheckpoint(split: Partition, context: TaskContext): Iterator[T] =
   {
+    logInfo ("In computeOrReadCheckpoint")
     if (isCheckpointed) firstParent[T].iterator(split, context) else compute(split, context)
   }
 

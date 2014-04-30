@@ -130,7 +130,7 @@ class HadoopRDD[K, V](
   }
 
   override def getPartitions: Array[Partition] = {
-    
+    logInfo("in getPartitions")
     val jobConf = getJobConf()
     // add the credentials here as this can be called before SparkContext initialized
     SparkHadoopUtil.get.addCredentials(jobConf)
@@ -142,7 +142,6 @@ class HadoopRDD[K, V](
     val inputSplits = inputFormat.getSplits(jobConf, minSplits)
     val endTime = System.currentTimeMillis()
     val timeD = endTime -  startTime    
-    //logInfo("Time to get split:" + timeD.toString)
     val array = new Array[Partition](inputSplits.size)
     for (i <- 0 until inputSplits.size) {
       array(i) = new HadoopPartition(id, i, inputSplits(i))
