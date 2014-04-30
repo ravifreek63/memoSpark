@@ -182,6 +182,7 @@ class HadoopRDD[K, V](
         }
       }
     }
+    logInfo("return from compute, HadoopRDD")
     new InterruptibleIterator[(K, V)](context, iter)
   }
 

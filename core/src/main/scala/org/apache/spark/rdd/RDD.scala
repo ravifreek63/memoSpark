@@ -251,6 +251,7 @@ abstract class RDD[T: ClassTag](
   private[spark] def computeOrReadCheckpoint(split: Partition, context: TaskContext): Iterator[T] =
   {
     logInfo ("In computeOrReadCheckpoint")
+    logInfo("isCheckpointed:" + isCheckpointed)
     if (isCheckpointed) firstParent[T].iterator(split, context) else compute(split, context)
   }
 
