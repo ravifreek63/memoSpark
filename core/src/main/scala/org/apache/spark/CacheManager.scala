@@ -28,10 +28,11 @@ import org.apache.spark.rdd.RDD
   */
 private[spark] class CacheManager(blockManager: BlockManager) extends Logging {
 
+  def getCurrentDirectory = new java.io.File( "." ).getCanonicalPath
   private var fileName: String = ""
   private var printFlag = false
   def getFileName(){
-    val source = scala.io.Source.fromFile("./log.txt").getLines
+    val source = scala.io.Source.fromFile(getCurrentDirectory + "./log.txt").getLines
     if (source.hasNext){
       printFlag = true
       fileName = source.next().trim()
