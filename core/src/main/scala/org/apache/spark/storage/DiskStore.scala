@@ -83,6 +83,7 @@ private class DiskStore(blockManager: BlockManager, diskManager: DiskBlockManage
   }
 
   override def getBytes(blockId: BlockId): Option[ByteBuffer] = {
+    logInfo("In getBytes")
     val segment = diskManager.getBlockLocation(blockId)
     val channel = new RandomAccessFile(segment.file, "r").getChannel()
     val buffer = try {

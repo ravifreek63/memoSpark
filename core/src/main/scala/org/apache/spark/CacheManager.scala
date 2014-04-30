@@ -72,9 +72,14 @@ private[spark] class CacheManager(blockManager: BlockManager) extends Logging {
           // Persist the result, so long as the task is not running locally
           if (context.runningLocally) { return computedValues }
           val elements = new ArrayBuffer[Any]
+          logInfo("elements")
           elements ++= computedValues
+          logInfo("putting to block manager")
           blockManager.put(key, elements, storageLevel, tellMaster = true)
-          elements.iterator.asInstanceOf[Iterator[T]]
+          logInfo("accessing iterator")
+          val I =elements.iterator.asInstanceOf[Iterator[T]]
+          logInfo("after accessing iterator")
+          I
         } finally {
           loading.synchronized {
             loading.remove(key)
