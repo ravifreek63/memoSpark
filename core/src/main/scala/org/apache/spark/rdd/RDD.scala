@@ -742,9 +742,21 @@ abstract class RDD[T: ClassTag](
       // Use a while loop to count the number of elements rather than iter.size because
       // iter.size uses a for loop, which is slightly slower in current version of Scala.
       var result = 0L
+      var startTime = System.currentTimeMillis()
+      var endTime = 0L
+      var timeDf = 0L
       while (iter.hasNext) {
+      endTime = System.currentTimeMillis()
+      timeDf = startTime - endTime 
+      if (timeDf > 100)
+        logInfo(timeDf.toString)
         result += 1L
+        startTime = System.currentTimeMillis()
         iter.next()
+        endTime = System.currentTimeMillis()
+        timeDf = startTime - endTime
+        if (timeDf > 10)
+        logInfo(timeDf.toString)
       }
       result
     }).sum

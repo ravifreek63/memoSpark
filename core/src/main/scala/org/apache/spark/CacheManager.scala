@@ -72,7 +72,7 @@ private[spark] class CacheManager(blockManager: BlockManager) extends Logging {
           // Persist the result, so long as the task is not running locally
           if (context.runningLocally) { return computedValues }
           val elements = new ArrayBuffer[Any]
-          logInfo("elements")
+          logInfo("elements")// The place where data gets accessed
           elements ++= computedValues
           logInfo("putting to block manager")
           blockManager.put(key, elements, storageLevel, tellMaster = true)
