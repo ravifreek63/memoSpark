@@ -17,6 +17,7 @@
 
 package org.apache.spark
 
+import java.io._
 import scala.collection.mutable.{ArrayBuffer, HashSet}
 import org.apache.spark.storage.{BlockId, BlockManager, StorageLevel, RDDBlockId}
 import org.apache.spark.rdd.RDD
@@ -27,6 +28,24 @@ import org.apache.spark.rdd.RDD
   */
 private[spark] class CacheManager(blockManager: BlockManager) extends Logging {
 
+  private var fileName: String = ""
+  private var printFlag = false
+  def getFileName(){
+    val source = scala.io.Source.fromFile("./log.txt").getLines
+    if (source.hasNext){
+      printFlag = true
+      fileName = source.next().trim()
+    }
+  }
+  def printToFile(msg: String) {
+    if (printFlag){
+           val writer = new FileWriter(fileName, true)
+           writer.write(msg + "\n")
+           writer.close()
+    }
+  }
+  
+  getFileName()
   /** Keys of RDD splits that are being computed/loaded. */
   private val loading = new HashSet[RDDBlockId]()
 
@@ -77,9 +96,7 @@ private[spark] class CacheManager(blockManager: BlockManager) extends Logging {
           val endTime = System.currentTimeMillis()
           val timeDifference = endTime - startTime 
           // Time taken to print each partition
-          if (rdd.getSC != null)
-        	  logInfo(rdd.getSC.toString())
-          logInfo(timeDifference.toString)
+          printToFile("%s".format(key) + "," + elements.size  +  "," + timeDifference.toString)
           blockManager.put(key, elements, storageLevel, tellMaster = true)          
           elements.iterator.asInstanceOf[Iterator[T]]                   
         } finally {
