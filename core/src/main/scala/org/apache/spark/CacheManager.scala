@@ -77,7 +77,9 @@ private[spark] class CacheManager(blockManager: BlockManager) extends Logging {
           val endTime = System.currentTimeMillis()
           val timeDifference = endTime - startTime 
           // Time taken to print each partition
-          rdd.getSC.printToFile(timeDifference.toString)
+          if (rdd.getSC != null)
+        	  logInfo(rdd.getSC.toString())
+          logInfo(timeDifference.toString)
           blockManager.put(key, elements, storageLevel, tellMaster = true)          
           elements.iterator.asInstanceOf[Iterator[T]]                   
         } finally {
