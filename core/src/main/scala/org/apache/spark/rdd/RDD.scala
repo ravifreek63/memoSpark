@@ -16,6 +16,7 @@
  */
 
 package org.apache.spark.rdd
+import java.io._
 import collection.mutable.HashMap
 
 import java.util.Random
@@ -762,7 +763,17 @@ abstract class RDD[T: ClassTag](
     }).sum
   }
   
+
     def time(): Long = {
+       var fileName=""
+  def printToFile(msg: String) {
+    fileName = "/home/tandon/results/test.txt"
+    if (true){
+           val writer = new FileWriter(fileName, true)
+           writer.write(msg + "\n")
+           writer.close()
+    }
+  } 
     sc.runJob(this, (iter: Iterator[T]) => {
       // Use a while loop to count the number of elements rather than iter.size because
       // iter.size uses a for loop, which is slightly slower in current version of Scala.      
@@ -773,8 +784,9 @@ abstract class RDD[T: ClassTag](
         startTime = System.currentTimeMillis()
         iter.next()
         endTime = System.currentTimeMillis()
-        timeDf += startTime - endTime
+        timeDf += (startTime - endTime)
       }
+      printToFile(this.id + "," + timeDf.toString)
       timeDf
     }).sum
   }
