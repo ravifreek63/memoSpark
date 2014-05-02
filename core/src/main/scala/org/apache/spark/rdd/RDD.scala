@@ -761,6 +761,23 @@ abstract class RDD[T: ClassTag](
       result
     }).sum
   }
+  
+    def time(): Long = {
+    sc.runJob(this, (iter: Iterator[T]) => {
+      // Use a while loop to count the number of elements rather than iter.size because
+      // iter.size uses a for loop, which is slightly slower in current version of Scala.      
+      var startTime = System.currentTimeMillis()
+      var endTime = 0L
+      var timeDf = 0L
+      while (iter.hasNext) {
+        startTime = System.currentTimeMillis()
+        iter.next()
+        endTime = System.currentTimeMillis()
+        timeDf += startTime - endTime
+      }
+      timeDf
+    }).sum
+  }
 
   /**
    * (Experimental) Approximate version of count() that returns a potentially incomplete result
