@@ -780,13 +780,15 @@ abstract class RDD[T: ClassTag](
       var startTime = System.currentTimeMillis()
       var endTime = 0L
       var timeDf = 0L
+      var count  = 0L
       while (iter.hasNext) {
+        count = count + 1
         startTime = System.currentTimeMillis()
         iter.next()
         endTime = System.currentTimeMillis()
-        timeDf += (startTime - endTime)
+        timeDf += (endTime - startTime)
       }
-      printToFile(this.id + "," + timeDf.toString)
+      printToFile(this.id + "," + count + "," + timeDf.toString)
       timeDf
     }).sum
   }
