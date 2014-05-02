@@ -46,7 +46,7 @@ private[spark] class CacheManager(blockManager: BlockManager) extends Logging {
     }
   }
   
-  getFileName()
+  //getFileName()
   /** Keys of RDD splits that are being computed/loaded. */
   private val loading = new HashSet[RDDBlockId]()
 
@@ -97,7 +97,7 @@ private[spark] class CacheManager(blockManager: BlockManager) extends Logging {
           val endTime = System.currentTimeMillis()
           val timeDifference = endTime - startTime 
           // Time taken to print each partition
-          printToFile("%s".format(key) + "," + elements.size  +  "," + timeDifference.toString)
+          //printToFile("%s".format(key) + "," + elements.size  +  "," + timeDifference.toString)
           blockManager.put(key, elements, storageLevel, tellMaster = true)          
           elements.iterator.asInstanceOf[Iterator[T]]                   
         } finally {
