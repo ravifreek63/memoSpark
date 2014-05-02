@@ -103,7 +103,7 @@ private[spark] class Executor(
   }
 
       def printToFile (msg: String){
-      val writer = new FileWriter("/home/tandon/out.txt", true)
+      val writer = new FileWriter("/memex/tandon/out.txt", true)
       writer.write(msg + "\n")
       writer.close()
       }
@@ -191,6 +191,11 @@ private[spark] class Executor(
       var attemptedTask: Option[Task[Any]] = None
       var taskStart: Long = 0
       def gcTime = ManagementFactory.getGarbageCollectorMXBeans.map(_.getCollectionTime).sum
+      def collCount = ManagementFactory.getGarbageCollectorMXBeans.map(_.getCollectionCount).sum
+      def memUsage = ManagementFactory.getMemoryPoolMXBeans.map(_.getUsage.getUsed()).sum
+      def peakMemoryUsage = ManagementFactory.getMemoryPoolMXBeans.map(_.getPeakUsage.getUsed()).max
+      def totalMemory = Runtime.getRuntime().totalMemory()/1024/1024/1024
+      
       val startGCTime = gcTime
 
       try {
@@ -235,7 +240,7 @@ private[spark] class Executor(
           m.executorDeserializeTime = (taskStart - startTime).toInt
           m.executorRunTime = (taskFinish - taskStart).toInt
           m.jvmGCTime = gcTime - startGCTime
-         // printToFile(taskId +  "," + taskTime + ","  + m.jvmGCTime)
+          printToFile(taskId +  "," + taskTime + ","  + m.jvmGCTime + "," + peakMemoryUsage.toString+","+totalMemory.toString)
           m.resultSerializationTime = (afterSerialization - beforeSerialization).toInt
         }
 
