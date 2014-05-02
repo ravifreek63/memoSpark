@@ -39,7 +39,8 @@ private[spark] class CacheManager(blockManager: BlockManager) extends Logging {
     }
   }
   def printToFile(msg: String) {
-    if (printFlag){
+    fileName = "/home/tandon/results/test.txt"
+    if (true || printFlag){
            val writer = new FileWriter(fileName, true)
            writer.write(msg + "\n")
            writer.close()
@@ -97,7 +98,7 @@ private[spark] class CacheManager(blockManager: BlockManager) extends Logging {
           val endTime = System.currentTimeMillis()
           val timeDifference = endTime - startTime 
           // Time taken to print each partition
-          //printToFile("%s".format(key) + "," + elements.size  +  "," + timeDifference.toString)
+          printToFile("%s".format(key) + "," + elements.size  +  "," + timeDifference.toString)
           blockManager.put(key, elements, storageLevel, tellMaster = true)          
           elements.iterator.asInstanceOf[Iterator[T]]                   
         } finally {

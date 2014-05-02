@@ -232,7 +232,7 @@ private[spark] class Worker(
       }
       val fullId = appId + "/" + execId
       if (ExecutorState.isFinished(state)) {
-        val executor = executors(fullId)
+        val executor = executors(fullId)        
         logInfo("Executor " + fullId + " finished with state " + state +
           message.map(" message " + _).getOrElse("") +
           exitStatus.map(" exitStatus " + _).getOrElse(""))
