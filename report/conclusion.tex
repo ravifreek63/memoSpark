@@ -1,0 +1,4 @@
+\section{Conclusion}
+\label{sec:conclusion}
+\paragraph{}
+We have presented an evaluation of the impact of memory pressure on the large in-memory computations. By quantifying, the impact of decrement in throughput due to garbage collection, we provide useful insights into managing cluster level applications. We posit that scaling horizontally by deploying more nodes may not scale applications as well as supporting individual nodes with larger memory. We have also performed experiments and measured the spectrum of object usage for a regular Spark application. We find that the object access patterns are heavy tailed and can be utilized to manage memory better. Lastly, we explore further improvements in the RDDs, by building indexes on top of partitions and show that we can perform more efficient range queries with such a design.
