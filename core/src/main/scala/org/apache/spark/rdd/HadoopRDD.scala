@@ -16,7 +16,7 @@
  */
 
 package org.apache.spark.rdd
-
+import org.apache.hadoop.mapred;
 import java.io.EOFException
 
 import org.apache.hadoop.conf.{Configuration, Configurable}
@@ -130,6 +130,7 @@ class HadoopRDD[K, V](
   }
 
   override def getPartitions: Array[Partition] = {
+    logInfo("in getPartitions")
     val jobConf = getJobConf()
     // add the credentials here as this can be called before SparkContext initialized
     SparkHadoopUtil.get.addCredentials(jobConf)
@@ -137,7 +138,10 @@ class HadoopRDD[K, V](
     if (inputFormat.isInstanceOf[Configurable]) {
       inputFormat.asInstanceOf[Configurable].setConf(jobConf)
     }
+    val startTime = System.currentTimeMillis()
     val inputSplits = inputFormat.getSplits(jobConf, minSplits)
+    val endTime = System.currentTimeMillis()
+    val timeD = endTime -  startTime    
     val array = new Array[Partition](inputSplits.size)
     for (i <- 0 until inputSplits.size) {
       array(i) = new HadoopPartition(id, i, inputSplits(i))
@@ -145,7 +149,10 @@ class HadoopRDD[K, V](
     array
   }
 
+
+
   override def compute(theSplit: Partition, context: TaskContext) = {
+    
     val iter = new NextIterator[(K, V)] {
       val split = theSplit.asInstanceOf[HadoopPartition]
       logInfo("Input split: " + split.inputSplit)
@@ -154,7 +161,8 @@ class HadoopRDD[K, V](
       val jobConf = getJobConf()
       val inputFormat = getInputFormat(jobConf)
       reader = inputFormat.getRecordReader(split.inputSplit.value, jobConf, Reporter.NULL)
-
+      logInfo("split Length:"+ ((split.inputSplit.value)).getLength().toString)
+      logInfo("split Length to string:" + split.inputSplit.value.toString)
       // Register an on-task-completion callback to close the input stream.
       context.addOnCompleteCallback{ () => closeIfNeeded() }
       val key: K = reader.createKey()
@@ -165,7 +173,7 @@ class HadoopRDD[K, V](
         } catch {
           case eof: EOFException =>
             finished = true
-        }
+        }    
         (key, value)
       }
 
@@ -177,6 +185,7 @@ class HadoopRDD[K, V](
         }
       }
     }
+    logInfo("return from compute, HadoopRDD")
     new InterruptibleIterator[(K, V)](context, iter)
   }
 

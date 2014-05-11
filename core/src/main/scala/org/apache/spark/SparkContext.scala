@@ -107,8 +107,27 @@ class SparkContext(
    * Return a copy of this SparkContext's configuration. The configuration ''cannot'' be
    * changed at runtime.
    */
-  def getConf: SparkConf = conf.clone()
+  def getConf: SparkConf = conf.clone()  
+  
 
+  var doOutput = 0
+  def doOutput (value: Int){
+    doOutput = value
+  }
+  var outFile = ""
+  def outPutFile (file: String){
+    outFile = file
+  }
+  
+  def printToFile (msg: String){
+    if (doOutput == 1){
+     val writer = new FileWriter(outFile, true)
+     writer.write(msg + "\n")
+     writer.close()
+  }
+  }
+  
+  
   if (!conf.contains("spark.master")) {
     throw new SparkException("A master URL must be set in your configuration")
   }

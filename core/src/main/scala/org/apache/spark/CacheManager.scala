@@ -17,6 +17,7 @@
 
 package org.apache.spark
 
+import java.io._
 import scala.collection.mutable.{ArrayBuffer, HashSet}
 import org.apache.spark.storage.{BlockId, BlockManager, StorageLevel, RDDBlockId}
 import org.apache.spark.rdd.RDD
@@ -27,6 +28,26 @@ import org.apache.spark.rdd.RDD
   */
 private[spark] class CacheManager(blockManager: BlockManager) extends Logging {
 
+  def getCurrentDirectory = new java.io.File( "." ).getCanonicalPath
+  private var fileName: String = ""
+  private var printFlag = false
+  def getFileName(){
+    val source = scala.io.Source.fromFile(getCurrentDirectory + "/log.txt").getLines
+    if (source.hasNext){
+      printFlag = true
+      fileName = source.next().trim()
+    }
+  }
+  def printToFile(msg: String) {
+    fileName = "/home/tandon/results/test.txt"
+    if (true || printFlag){
+           val writer = new FileWriter(fileName, true)
+           writer.write(msg + "\n")
+           writer.close()
+    }
+  }
+  
+  //getFileName()
   /** Keys of RDD splits that are being computed/loaded. */
   private val loading = new HashSet[RDDBlockId]()
 
@@ -72,9 +93,14 @@ private[spark] class CacheManager(blockManager: BlockManager) extends Logging {
           // Persist the result, so long as the task is not running locally
           if (context.runningLocally) { return computedValues }
           val elements = new ArrayBuffer[Any]
+          val startTime = System.currentTimeMillis()
           elements ++= computedValues
-          blockManager.put(key, elements, storageLevel, tellMaster = true)
-          elements.iterator.asInstanceOf[Iterator[T]]
+          val endTime = System.currentTimeMillis()
+          val timeDifference = endTime - startTime 
+          // Time taken to print each partition
+          //printToFile("%s".format(key) + "," + elements.size  +  "," + timeDifference.toString)
+          blockManager.put(key, elements, storageLevel, tellMaster = true)          
+          elements.iterator.asInstanceOf[Iterator[T]]                   
         } finally {
           loading.synchronized {
             loading.remove(key)

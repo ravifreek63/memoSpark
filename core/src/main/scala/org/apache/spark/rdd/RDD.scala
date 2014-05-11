@@ -16,6 +16,7 @@
  */
 
 package org.apache.spark.rdd
+import java.io._
 import collection.mutable.HashMap
 
 import java.util.Random
@@ -229,9 +230,18 @@ abstract class RDD[T: ClassTag](
    * subclasses of RDD.
    */
   final def iterator(split: Partition, context: TaskContext): Iterator[T] = {
+    logInfo("in Iterator")
     if (storageLevel != StorageLevel.NONE) {
-      SparkEnv.get.cacheManager.getOrCompute(this, split, context, storageLevel)
+    logInfo("storage level not none")
+    val startTime = System.currentTimeMillis()
+    val I = SparkEnv.get.cacheManager.getOrCompute(this, split, context, storageLevel)
+    val endTime = System.currentTimeMillis()
+    val timeD = endTime -  startTime
+    logInfo("split:" + split.index.toString +", time:" + timeD.toString) 
+    I
     } else {
+      logInfo("storage level none")
+      logInfo("iterator called, calling computeOrReadCheckpoint")
       computeOrReadCheckpoint(split, context)
     }
   }
@@ -241,6 +251,8 @@ abstract class RDD[T: ClassTag](
    */
   private[spark] def computeOrReadCheckpoint(split: Partition, context: TaskContext): Iterator[T] =
   {
+    logInfo ("In computeOrReadCheckpoint")
+    logInfo("isCheckpointed:" + isCheckpointed)
     if (isCheckpointed) firstParent[T].iterator(split, context) else compute(split, context)
   }
 
@@ -266,7 +278,9 @@ abstract class RDD[T: ClassTag](
   /**
    * Return a new RDD containing elements sorted by the keys
    */
-  def index(): RDD[T] = new IndexedRDD(this)
+  def index(): RDD[T] = new IndexRDD(this)
+  
+  def indexedKV(): RDD[T] = new IndexedRDDKV(this)
   
   /**
    * Return a new RDD containing the distinct elements in this RDD.
@@ -729,11 +743,53 @@ abstract class RDD[T: ClassTag](
       // Use a while loop to count the number of elements rather than iter.size because
       // iter.size uses a for loop, which is slightly slower in current version of Scala.
       var result = 0L
+      var startTime = System.currentTimeMillis()
+      var endTime = 0L
+      var timeDf = 0L
       while (iter.hasNext) {
+      endTime = System.currentTimeMillis()
+      timeDf = startTime - endTime 
+      if (timeDf > 100)
+        logInfo(timeDf.toString)
         result += 1L
+        startTime = System.currentTimeMillis()
         iter.next()
+        endTime = System.currentTimeMillis()
+        timeDf = startTime - endTime
+        if (timeDf > 10)
+        logInfo(timeDf.toString)
       }
       result
+    }).sum
+  }
+  
+
+    def time(): Long = {
+       var fileName=""
+  def printToFile(msg: String) {
+    fileName = "/home/tandon/results/test.txt"
+    if (true){
+           val writer = new FileWriter(fileName, true)
+           writer.write(msg + "\n")
+           writer.close()
+    }
+  } 
+    sc.runJob(this, (iter: Iterator[T]) => {
+      // Use a while loop to count the number of elements rather than iter.size because
+      // iter.size uses a for loop, which is slightly slower in current version of Scala.      
+      var startTime = System.currentTimeMillis()
+      var endTime = 0L
+      var timeDf = 0L
+      var count  = 0L
+      while (iter.hasNext) {
+        count = count + 1
+        startTime = System.currentTimeMillis()
+        iter.next()
+        endTime = System.currentTimeMillis()
+        timeDf += (endTime - startTime)
+      }
+      printToFile(this.id + "," + count + "," + timeDf.toString)
+      timeDf
     }).sum
   }
 
