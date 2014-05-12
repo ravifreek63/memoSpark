@@ -1,19 +1,79 @@
 \section{Design} 
 \label{sec:design}
-We first describe the basic design Spark. Spark abstracts data in the form of a globally addressable data structure called Resilient Distributed Dataset. The RDD is divided into smaller partitions. Each partition is an an array of the unit (the unit is class type of the data).  In order to execute a job on spark, a driver program requests the master node to schedule a given task on the worker nodes. The job (in our case a filter query) is then executed in  four basic steps: 
+We first describe the basic design of Spark. Spark abstracts data in the
+form of a globally addressable data structure called Resilient
+Distributed Dataset. The RDD is divided into smaller partitions, each of
+which is an array of the unit (the unit is the class type of data).  In
+order to execute a job on Spark, a driver program requests the master
+node to schedule a given task on the worker nodes. The job (in our case
+a filter query) is then executed in four basic steps: 
 \begin{enumerate}
-\item The master node requests file metadata from the underlying hadoop file system. A lazy read on the file is performed, meaning the data is also read into the memory when an action has to be performed on the RDD. Based on the file metadata, the master node computes the appropriate partitions on the file size. (Spark uses a maximum size of \textit{33MB} per partition). 
-\item The master then sends the jar file containing the job to the different worker nodes along with the set of partitions on which each of the worker node has to perform the job. 
-\item The worker nodes read the data from the distributed file system into their local memory. Thereafter, they execute the actions on the RDDs and return the result back to the master node.
-\item The master node then performs necessary completion actions on the job (generally an aggregation of the results) and returns the result back to the driver.
+\item The master node requests file metadata from the underlying Hadoop
+    file system. A lazy read on the file is performed, meaning the data
+    is read into the memory only when an action has to be performed on
+    the RDD. Based on the file metadata, the master node computes the
+    appropriate partitions on the file size. (Spark uses a maximum size
+    of \emph{33MB} per partition). 
+\item The master then sends the \texttt{jar} file containing the job to
+    the different worker nodes along with the set of partitions on which
+    each of the worker node has to perform the job. 
+\item The worker nodes read the data from the distributed file system
+    into their local memory. Thereafter, they execute the actions on the
+    RDDs and return the result back to the master node.
+\item The master node then performs necessary completion actions on the
+    job (generally an aggregation of the results) and returns the result
+    back to the driver.
 \end{enumerate}
+
 \paragraph{Index Creation:}
-In our design, driver program initially requests the creation of an index on the RDD given a specific key. The Spark runtime sends a job (the index creation) job on each of the worker node. Each of the worker node then reads the allocated partition and computes a pair of keys. This pair denotes the smallest and the largest key within the partition and essentially is the range of the partition. The master then retrieves the range for each partition and then aggregates them into a single in-memory array mapped to the file, key pair. Any subsequent query on the specified key is performed through a different sequence of steps. 
-	For any lookup query on the key, the master node computes the partitions which include the key within their range. The master node then runs the job on the filtered set of RDDs which may contain the key. The job is then sent to the different worker nodes. Each of the worker node performs the job on their respective of partitions and returns the result back to the master. The master then aggregates the result and sends it back to the driver. 
+In our design, the driver program initially requests the creation of an
+index on the RDD given a specific key.  The Spark runtime sends a job
+(for index creation) to each of the worker node, which then reads the
+allocated partition and computes a pair of keys.  This pair denotes the
+smallest and the largest keys within the partition and essentially is
+the range of the partition.  The master then retrieves the range for
+each partition and then aggregates them into a single in-memory array.
+Any subsequent queries on the specified key are performed through a
+different sequence of steps.
+
+For any lookup query on the key, the master node computes the partitions
+which include the key within their range. The master node then runs the
+job on the filtered set of RDDs which may contain the key. The job is
+then sent to the different worker nodes. Each of the worker node
+performs the job on their respective of partitions and returns the
+result back to the master. The master then aggregates the result and
+sends it back to the driver. 
+
 \paragraph{Design of Indexed RDDs:}
-Here we discuss the design of our indexed RDDs. We support indexing on top for RDDs wherein each record can be structured as a key-value pair. We range-partition the RDDs. For each partition the highest and lowest key (according to an appropriate class comparison function) is computed. This is thereafter stored as the metadata for each partition. The range partitions are thereafter used for any subsequent queries to compute the possible subset of partitions within which the key can exist and the corresponding query is run on the RDD. In our current design, the range partitioning is done by the master and the range partition is cached in memory as a map of partition index as the key and range as the corresponding value.  
-Besides, support for range partitioning, we are also support a faster indexing scheme if the underlying data is sorted on the key. The indexer stores the smallest value for each partition and caches it in memory. Since, the keys are sorted, any subsequent pair of keys can be used as a range for the preceding partition. Thereafter, the master can efficiently figure out the range of partitions within which a querying key would lie in. 
+We support indexing on top for RDDs wherein each record can be
+structured as a key-value pair.  We range-partition the RDDs. For each
+partition the highest and lowest key (according to an appropriate class
+comparison function) is computed.  This is thereafter stored as the
+metadata for each partition, and later on used for any subsequent
+queries to compute the possible subset of partitions within which the
+keys can exist and the corresponding query is run on the RDD. In our
+current design, the range partitioning is done by the master and cached
+in memory, as a map of partition index as the
+key and range as the corresponding value.
+
+In addition to the support for range partitioning, we also support a
+fast indexing scheme if the key-value structured data is sorted on the
+key. The indexer stores the smallest value for each partition and caches
+it in memory. Since the keys are sorted, any subsequent pair of keys can
+be used as a range for the preceding partition. Thereafter, the master
+can efficiently figure out the range of partitions within which a
+querying key would fall in. 
 
 \paragraph{Design of JVM prototype:}
-For our virtual machine prototype, we use an open source Java Virtual Machine \cite{openjdk}, \textit{Oracle's OpenJDK framework}. A Java program is compiled into an intermediate bytecode representation. Object accesses are compiled into load and store instructions. We intercept the load and store instructions and put in extra instructions to that increment the count of an object on each access.  The Java Virtual Machine abstracts each java object as class instance within the virtual machine.  In order to achieve a low overhead on each object access we add an extra field within the object header and increment the count on every object access. This lets us monitor accesses on each object throughout the java program's execution.
+For our virtual machine prototype, we use an open source Java Virtual
+Machine, \emph{Oracle's OpenJDK framework} \cite{openjdk}. A Java
+program is compiled into an intermediate bytecode representation. Object
+accesses are compiled into \texttt{load} and \texttt{store}
+instructions. We intercept these instructions and put in extra
+instructions to increment the counter of an object on each access.  JVM
+abstracts each Java object as a class instance within the virtual
+machine.  In order to achieve a low overhead on each object access, we
+add an extra field within the object header and increment the counter on
+every object access. This allows us to monitor accesses on each object
+throughout the Java program's execution.
 
