@@ -1,12 +1,27 @@
 \section{Implementation} 
 \label{sec:implementation}
 \paragraph{}
-We here describe the implementation of our indexed RDDs. We create a separate derived class IndexedRDDKV, with the RDD class as its base class. We support the following interfaces on the RDD class:
+We here describe the implementation of our indexed RDDs. We create a
+separate derived class \texttt{IndexedRDDKV}, with the RDD class as its
+base class. We support the following interfaces on the RDD class:
+
 \begin{enumerate}
-\item \textit{indexedKV():} The driver program can call indexedKV() on any RDD to transform the given RDD into an RDD of key, values which supports indexing. Each record must be a key-value pair. 
-We expose the following interfaces on the IndexedRDDKV class:
-\item \textit{rangePartitions ():} The method creates a range partitioned index on the data in the RDDs. For each partition, the smallest and the largest value is stored as the range of the partition.
-\item \textit{searchByKeyRangePartitioned (key: String):} This method searches for the key within the range partitions. The master first filters the set of partitions within which the key can exist and then runs the query on those select partitions. 
-\item \textit{indexPartitions():} The indexPartitions method is used to create a partition on the range of keys when the input data is already sorted. 
-\item \textit{searchByKey(key: String):} The search by key function searches the given string within the RDD using the index created by the indexedPartitions function. 
+\item \texttt{indexedKV()}: The driver program can call this method on
+    any RDD to transform the given RDD into an RDD of indexed RDD with
+    support of indexing. Each record must be a key-value pair. 
+    We expose the following interfaces on the \texttt{IndexedRDDKV}
+    class:
+\item \texttt{rangePartitions()}: The method creates a range partitioned
+    index on the data in the RDDs. For each partition, the smallest and
+    the largest values are stored as the range of that partition.
+\item \texttt{searchByKeyRangePartitioned(key:String)}: This method
+    searches for the key within the range partitions. The master first
+    filters the set of partitions within which the key can fall into and
+    then runs the query on those select partitions. 
+\item \texttt{indexPartitions()}: This method is used to
+    create a partition on the range of keys when the input data is
+    already sorted. 
+\item \texttt{searchByKey(key:String)}: The method searches the given
+    key within the RDD using the index created by the
+    \texttt{indexedPartitions} function. 
 \end{enumerate}
