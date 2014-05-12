@@ -1,10 +1,66 @@
 \section{Introduction} 
 \label{sec:intro}
 \paragraph{}
-With the advent of big data systems such as \cite{zaharia2012resilient, engle2012shark, agarwal2013blinkdb} large computations have been pushed within memory of the computing nodes. While reduction in the dependence on secondary storage for fault-tolerance can improve the performance throughput significantly, it increases the memory pressure on the application. Our belief is that as systems scale, memory would become a bottleneck for applications that rely heavily on memory. We, therefore, investigate the effect of memory pressure on a state of the art runtime engine (\textit{Spark}) and point out the fundamental issues in extending current systems owing to specific access patterns of these applications. Additionally, we suggest extensions in the design of RDDs that can significantly reduce in-memory computation, thus lending to better scalability. 
+With the advent of big data systems such as \cite{zaharia2012resilient,
+engle2012shark, agarwal2013blinkdb}, large computations have been pushed
+within memory of the computing nodes. While reduction in the dependence
+on secondary storage can improve the throughput significantly, it
+increases the memory pressure on the application at the same time. We
+believe that as systems scale, memory would become a bottleneck for
+applications that have frequent large access to data stored in memory.
+We, therefore, investigate the effect of memory pressure on a
+state-of-the-art runtime engine \emph{Spark}, and point out the
+fundamental issues in extending current systems owing to the specific
+access patterns of these applications. Additionally, we suggest
+extensions in the design of RDDs that can significantly reduce memory
+pressure, thus leading to better scalability. 
 \paragraph{}
-Spark is an in-memory runtime that supports large big data workloads. Spark introduces the concept of \textit{Resilient Distributed Datasets (RDDs)} which are large data sets and can be partitioned across several nodes. RDDs use a global namespace and therefore are globally visible from every node within the cluster. Internally, Spark, models computations as graphs of tasks much like \textit{Dryad} \cite{isard2007dryad} and computes lineages based these computation graph models for resilience. Inherently, Spark pushes computations and the corresponding data in memory, unlike the MapReduce \cite{dean2008mapreduce} framework that relies on intermediate persistence for fault tolerance. We posit that such frameworks will be bottlenecked by the available DRAMs as the applications scale. We identify two basic reasons for this. Firstly, commodity servers typically run with 4GB or 8GB of RAM and therefore processing data on the order of hundreds of gigabytes of data can require tens of server machines. This could not only increase the cost of the cluster, it would result in heavy overheads due to excessive network and disk bandwidth utilization. Scaling DRAM is not a viable option since the cost of DRAM (\$/GB) goes exponentially higher as DRAM sizes increase beyond 64GB. \cite{badam2011ssdalloc} Secondly, runtimes such as Spark are built on managed runtimes such as Scala. Scala runs on top of Java Virtual Machine (JVM). JVM increases the overall overhead and results in significant reduction in application throughput due to memory management overheads. \cite{yang2006cramm}
+Spark is an in-memory runtime that supports large big-data workloads.
+Spark introduces the concept of \emph{Resilient Distributed Datasets
+(RDDs)}, which are abstractions of large datasets that can be
+partitioned and shipped among several nodes. RDDs use a global namespace
+and therefore are visible from every node within the cluster.
+Internally, Spark models computations as graphs of tasks much like
+Dryad \cite{isard2007dryad} and computes lineages based on  %lineages?
+these computation graph models for resilience. Inherently, Spark pushes
+computations and the corresponding data in memory, unlike the MapReduce
+\cite{dean2008mapreduce} framework that relies on intermediate
+persistence for fault tolerance. We posit that such frameworks will be
+bottlenecked by the available DRAMs as the applications scale. We
+identify two basic reasons for this. Firstly, commodity servers
+typically run with 4GB to 16GB of RAM, so processing data on the order
+of hundreds of gigabytes requires tens of such machines. This could not
+only increase the cost of the cluster, but also result in significant
+overheads due to excessive network and disk bandwidth utilization.
+Scaling DRAM is not a viable option since the cost of DRAM (\$/GB) goes
+exponentially higher as DRAM sizes increase beyond 64GB.
+\cite{badam2011ssdalloc} Secondly, frameworks such as Spark are built on
+managed runtimes such as Scala, which runs on top of Java Virtual
+Machine (JVM). JVM increases the overall workload and results in
+significant reduction in application throughput due to memory management
+overheads. \cite{yang2006cramm}
 \paragraph{}
-	We therefore investigate the performance of a big data application over 5 different configurations and show that applications that use in-memory computation frameworks would perform better if memory per node can scale well. Horizontal scaling supports larger workloads at the cost of a reduction in the application throughput due to increased communication costs. In order to develop deeper insight into possible solutions to scale applications we have designed a unique interception mechanism within the Java Virtual Machine that profiles an application’s access patterns at the object level. We observe that applications have a heavy tailed access pattern which can be exploited to extend  memory management systems to better scale applications by transparently and dynamically profiling the workload.  In order to reduce computation and communication costs, we propose generic extensions to RDDs by range partitioning them. We refer to these RDDs as IRDDs \textit{(Indexed RDDs)}. We find such range partitioning schemes to be useful for running filtering queries on log based datasets.
+To prove this, we investigate the performance of a big-data application
+over 5 different configurations, and show that applications that use
+in-memory computation frameworks would perform better only if memory per
+node can scale well. Horizontal scaling supports larger workloads at the
+cost of a reduction in the application throughput due to increased
+communication costs. In order to develop deeper insight into possible
+solutions for application scalability, we have designed a unique
+interception mechanism within JVM that profiles an application's
+access patterns at the object level. We observe that applications have a
+heavy-tailed access pattern which can be exploited to extend memory
+management systems to better scale applications by transparently and
+dynamically profiling the workload.  In order to reduce computation and
+communication costs, we propose generic extensions to RDDs by range
+partitioning them. We refer to these RDDs as IRDDs \textit{(Indexed
+RDDs)}. We find such range partitioning schemes to be useful for running
+filtering queries on log based datasets.
 \paragraph{}
-	The rest of the paper is organized as follows. Section \ref{sec:motivation} provides higher level ideas that motivated this work. Section \ref{sec:design} describes the design of our work.  Section \ref{sec:implementation} discusses implementation details of I-RDDs. Section \ref{sec: related} describes some of the related work. Section \ref{sec:experiments} describes our evaluation. Section \ref{sec:conclusion} provides a brief summary of our work.
+The rest of the paper is organized as follows. Section
+\ref{sec:motivation} provides higher level ideas that motivated this
+work. Section \ref{sec:design} describes the design of our work.
+Section \ref{sec:implementation} discusses implementation details of
+I-RDDs, followed by our evaluations in Section \ref{sec:eval}. Section
+\ref{sec:related} lists some of the related work.  We conclude in
+Section \ref{sec:conclusion}.
