@@ -2,6 +2,22 @@
 % $Id: abstract.tex 70 2007-01-30 21:59:16Z nicolosi $
 
 \begin{abstract}
-Whislt the advent of in-memory computation platforms for big-data applications has considerably improved application throughput, it has significantly increased reliance on the available memory resources within individual computing nodes.  The current design of large scale data computation platforms makes use of commodity servers with few resources on individual nodes. We present an analysis of the impact of this tension that could possibly hamper future large scale computing platforms. We, therefore, present an analysis of the effects of memory pressure on big data applications running on the Spark runtime. Specifically, this work quantifies the impact of garbage collection done by storage management on the application throughput. Besides, we present results based on object level access patterns of an application running on Spark through a unique interception mechanism oblivious to applications. Additionally, we extend the abstraction of RDDs by providing indexing capabilities within key-valued RDDs. We show that simple range partitioning of real world log data can help reduce query time when using RDDs. 
+Whislt the advent of in-memory computation platforms for big-data
+applications has considerably improved application throughput, it has
+also significantly increased the reliance on the available memory
+resources within individual computing nodes.  The current design of
+large scale data computation platforms makes use of commodity servers,
+which typically have limited resources on each node.  In this paper we
+present an analysis of the impact of this tension that could possibly
+hamper future big-data computing platforms.  To reveal the effects of
+memory pressure on big-data applications running on Spark, we conduct
+experiments to quantify the impact of garbage collection done by storage
+management on the application throughput. Besides, we present results
+based on object level access patterns of an application running on Spark
+through a unique interception mechanism oblivious to applications.
+Additionally, we extend the abstraction of RDDs by providing indexing
+capabilities within key-valued RDDs. We show that simple range
+partitioning of real world log data can help reduce query time when
+using RDDs. 
 \end{abstract}
 
