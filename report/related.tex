@@ -1,8 +1,28 @@
 \section{Related Work}
 \label{sec:related}
 \paragraph{}
-We build our design on top of the Spark\cite{zaharia2012resilient} runtime engine. While, Spark provides useful abstractions for performing distributed computations on top of RDDs, it lacks good support for performing queries (such as filter, count etc. on pre-specified keys). Other frameworks such as Shark \cite{engle2012shark}, Blink-DB \cite{agarwal2013blinkdb} have been used for performing queries on top of Spark. However, they require data to be completely structured as data within the mysql database. We have designed our system for semi-structured data, which consists of key, value pairs in files. 
+We build our design on top of the Spark \cite{zaharia2012resilient}
+runtime engine. While Spark provides useful abstractions for performing
+distributed computations on top of RDDs, it lacks good support for
+performing queries (such as \testtt{filter}, \texttt{count}, etc.) on
+pre-specified keys.  Other frameworks such as Shark
+\cite{engle2012shark}, Blink-DB \cite{agarwal2013blinkdb} have been used
+for performing queries on top of Spark. However, they require data to be
+completely structured as like data stored in RDBMS. We have designed our
+system for semi-structured data, which consists of key-value pairs in
+data files. 
+
 \paragraph{}
-Systems such as MANIMAL \cite{jahani2011automatic} perform automatic optimizations on top of MapReduce programs. They can provide similar optimizations by building B+ trees on data already stored within the HDFS. However, our design works for an in-memory runtime engine, though fundamentally it is not very different.
+Systems such as MANIMAL \cite{jahani2011automatic} perform automatic
+optimizations on top of MapReduce programs. They can provide similar
+optimizations by building B+ trees on data already stored within the
+HDFS. However, our design works for an in-memory runtime engine, though
+fundamentally it has some similar ideas.
+
 \paragraph{}
-Systems such as SSDAlloc\cite{badam2011ssdalloc} have looked at detecting object level accesses within native language programs. The system relies on page protection mechanism which can be expensive. Our system intercepts object level accesses within a managed runtime and is completely transparent and therefore addresses a different problem subspace.
+Systems such as SSDAlloc\cite{badam2011ssdalloc} have looked at
+detecting object-level accesses within native language programs. The
+system relies on page protection mechanism which can be very expensive.
+Our system intercepts object level accesses within a managed runtime and
+is completely transparent, therefore addresses a different problem
+subspace.
